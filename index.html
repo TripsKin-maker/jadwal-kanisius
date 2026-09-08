@@ -1096,8 +1096,6 @@ body.authenticated .student-view #legendBtn{display:flex}
 
 
 <style id="online-sync-styles">
-  .auth-select{width:100%;border:1px solid rgba(20,33,56,.16);background:#fff;border-radius:10px;padding:12px 13px;font:500 14px 'Inter',sans-serif;outline:none;color:var(--ink)}
-  .auth-select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(198,161,91,.14)}
   .sync-pill{transition:border-color .2s ease,background .2s ease,color .2s ease}
   .sync-dot{width:7px;height:7px;border-radius:50%;background:#8b93a1;box-shadow:0 0 0 4px rgba(139,147,161,.12)}
   .sync-pill.online{border-color:rgba(47,107,70,.45);background:rgba(47,107,70,.10)}
@@ -1105,10 +1103,10 @@ body.authenticated .student-view #legendBtn{display:flex}
   .sync-pill.syncing .sync-dot{background:var(--gold);animation:pulseDot 1.2s infinite}
   .sync-pill.offline{border-color:rgba(122,46,46,.45);background:rgba(122,46,46,.09)}
   .sync-pill.offline .sync-dot{background:#a84646;box-shadow:0 0 0 4px rgba(168,70,70,.12)}
-  #adminTools,#manageAccountsBtn{display:none!important}
-  .authenticated .task-form{display:block!important}
-  .authenticated .task-edit-btn,.authenticated .task-del{display:flex!important}
-  .authenticated .task-bulk{display:flex!important}
+  #adminTools,#manageAccountsBtn,#accountModal{display:none!important}
+  .admin-view .task-check,.admin-view .task-progress-wrap,.admin-view .task-bulk{display:none!important}
+  .admin-view .task-filter[data-filter="pending"]{display:none}
+  .student-view .task-form,.student-view .task-edit-btn,.student-view .task-del,.student-view .task-bulk{display:none!important}
   .account-chip{max-width:250px}
   @media(max-width:600px){.account-chip{max-width:38vw}.sync-pill{order:10}}
 </style>
@@ -1118,24 +1116,20 @@ body.authenticated .student-view #legendBtn{display:flex}
 <div class="auth-screen" id="authScreen">
   <div class="auth-box">
     <div class="auth-crest">KK</div>
-    <div class="auth-kicker">SMA Kolese Kanisius · Sinkronisasi Online</div>
-    <h1 class="auth-title">Ruang Kelas Bersama</h1>
-    <p class="auth-sub">Masuk dari perangkat apa pun. Teman sekelas akan melihat tugas yang disimpan di kelas yang sama.</p>
+    <div class="auth-kicker">SMA Kolese Kanisius · Akses Kelas Online</div>
+    <h1 class="auth-title">Masuk ke Kelas</h1>
+    <p class="auth-sub">Gunakan akun siswa atau admin yang sudah disediakan untuk kelas X, XI, dan XII.</p>
     <div class="auth-tabs">
-      <button class="auth-tab active" id="studentTab" type="button">Masuk</button>
-      <button class="auth-tab" id="adminTab" type="button">Buat akun</button>
+      <button class="auth-tab active" id="studentTab" type="button">Siswa</button>
+      <button class="auth-tab" id="adminTab" type="button">Admin Kelas</button>
     </div>
     <form id="loginForm">
-      <div class="auth-field"><label for="loginUsername" id="loginIdentityLabel">Email / username</label><input id="loginUsername" type="text" autocomplete="username" placeholder="nama@email.com atau username" required></div>
-      <div class="auth-field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" minlength="6" autocomplete="current-password" placeholder="Minimal 6 karakter" required></div>
-      <div id="registerFields" hidden>
-        <div class="auth-field"><label for="registerName">Nama panggilan</label><input id="registerName" autocomplete="name" placeholder="Nama yang dilihat teman"></div>
-        <div class="auth-field"><label for="registerClass">Kelas yang dibagikan</label><select id="registerClass" class="auth-select"></select></div>
-      </div>
-      <button class="auth-submit" id="authSubmitBtn" type="submit">Masuk</button>
+      <div class="auth-field"><label for="loginUsername">Username</label><input id="loginUsername" type="text" autocomplete="username" placeholder="Contoh: X1-siswa01" required></div>
+      <div class="auth-field"><label for="loginPassword">Password</label><input id="loginPassword" type="password" minlength="6" autocomplete="current-password" placeholder="Masukkan password" required></div>
+      <button class="auth-submit" id="authSubmitBtn" type="submit">Masuk sebagai siswa</button>
       <div class="auth-error" id="loginError"></div>
     </form>
-    <p class="auth-help" id="authHelp">Belum punya akun? Pilih <b>Buat akun</b>. Teman Anda harus memilih kelas yang sama agar dapat melihat daftar yang sama.</p>
+    <p class="auth-help" id="authHelp"><b>Contoh siswa X-1:</b> X1-siswa01 · Siswa01!X1<br>Tersedia siswa01 sampai siswa40 untuk setiap kelas.</p>
   </div>
 </div>
 <div class="account-bar" id="accountBar">
@@ -1264,7 +1258,7 @@ body.authenticated .student-view #legendBtn{display:flex}
     <div class="task-header">
       <div style="display:flex; align-items:center; gap:12px;">
         <span class="task-title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l2.2 2.2L15.5 8.5"/><rect x="4" y="4" width="16" height="16" rx="4"/></svg></span>
-        <div><div class="task-eyebrow">Tersimpan Online · Dibagikan per Kelas</div><h2 class="task-title">Tugas, PR &amp; Ulangan</h2></div>
+        <div><div class="task-eyebrow">Dibagikan Admin · Tersimpan Online</div><h2 class="task-title">Tugas, PR &amp; Ulangan</h2></div>
       </div>
       <div class="task-count" id="taskCount">0 tugas belum selesai</div>
     </div>
@@ -1294,7 +1288,7 @@ body.authenticated .student-view #legendBtn{display:flex}
       <section class="task-section exam-section" aria-label="Ulangan"><div class="task-section-head"><div class="task-section-title"><span class="section-icon">✎</span> Ulangan</div><span class="task-section-count" id="examSectionCount">0 item</span></div><div class="task-list" id="examList"></div></section>
     </div>
     <button class="task-expand-btn" id="taskExpandBtn" type="button" aria-expanded="false"><span id="taskExpandIcon">⌄</span><span id="taskExpandText">Tampilkan semua</span></button>
-    <div class="task-hint">Tugas/PR dan ulangan dipisahkan otomatis. Maksimal 10 item ditampilkan per bagian; gunakan tombol di bawah untuk melihat semuanya. Tugas yang lewat tenggat tetap bisa dicentang. Tersimpan otomatis secara online. Perubahan akan muncul di perangkat teman yang masuk ke kelas yang sama.</div>
+    <div class="task-hint">Tugas/PR dan ulangan dipisahkan otomatis. Maksimal 10 item ditampilkan per bagian; gunakan tombol di bawah untuk melihat semuanya. Tugas yang lewat tenggat tetap bisa dicentang. Hanya admin kelas yang dapat menambah, mengedit, dan menghapus. Tanda selesai tersimpan pribadi untuk setiap siswa.</div>
   </div>
 
   <div class="info-toggle-grid">
@@ -2552,462 +2546,272 @@ window.addEventListener('keydown', e=>{
 });
 
 
-/* ===== SUPABASE MULTI-DEVICE AUTH + SHARED CLASS DATA ===== */
+/* ===== ONLINE PRE-CREATED STUDENT + ADMIN ACCOUNTS ===== */
 (function(){
   const sb = supabaseClient;
-  const CLASS_LIST = [];
-  ['X','XI','XII'].forEach(t => { for(let n=1;n<=8;n++) CLASS_LIST.push(t+'-'+n); });
-
-  let authMode = 'login';
-  let currentUser = null;
-  let currentProfile = null;
-  let completionMap = {};
-  let realtimeChannel = null;
+  const SESSION_KEY = 'kk-online-class-session-v2';
+  let authMode = 'student';
+  let sessionToken = '';
+  let currentAccount = null;
   let reloadTimer = null;
-  let bootPromise = null;
 
   const authScreen = document.getElementById('authScreen');
   const accountBar = document.getElementById('accountBar');
   const loginError = document.getElementById('loginError');
-  const classSelect = document.getElementById('registerClass');
-  CLASS_LIST.forEach(cls => {
-    const o = document.createElement('option');
-    o.value = cls; o.textContent = cls;
-    classSelect.appendChild(o);
-  });
 
-  function setSyncStatus(mode, text){
-    const el = document.getElementById('syncStatus');
-    const label = document.getElementById('syncStatusText');
-    if(!el || !label) return;
+  function setSyncStatus(mode,text){
+    const el=document.getElementById('syncStatus'),label=document.getElementById('syncStatusText');
+    if(!el||!label)return;
     el.classList.remove('online','syncing','offline');
-    if(mode) el.classList.add(mode);
-    label.textContent = text;
+    if(mode)el.classList.add(mode);
+    label.textContent=text;
   }
-
   function errorMessage(err){
-    const raw = String(err?.message || err || 'Terjadi kesalahan.');
-    if(/invalid login credentials/i.test(raw)) return 'Email atau password salah.';
-    if(/email not confirmed/i.test(raw)) return 'Email belum dikonfirmasi. Periksa kotak masuk email Anda.';
-    if(/user already registered/i.test(raw)) return 'Email ini sudah terdaftar. Silakan masuk.';
-    if(/failed to fetch|network/i.test(raw)) return 'Tidak dapat terhubung ke internet.';
-    if(/row-level security|permission denied/i.test(raw)) return 'Akses database ditolak. Jalankan berkas supabase-setup.sql terlebih dahulu.';
+    const raw=String(err?.message||err||'Terjadi kesalahan.');
+    if(/username atau password salah/i.test(raw))return 'Username atau password salah.';
+    if(/sesi tidak valid|kedaluwarsa/i.test(raw))return 'Sesi berakhir. Silakan masuk kembali.';
+    if(/khusus admin/i.test(raw))return 'Aksi ini hanya dapat dilakukan admin kelas.';
+    if(/khusus siswa/i.test(raw))return 'Tanda selesai hanya tersedia untuk siswa.';
+    if(/failed to fetch|network/i.test(raw))return 'Tidak dapat terhubung ke internet.';
+    if(/function .* does not exist|could not find the function/i.test(raw))return 'Database belum disiapkan. Jalankan supabase-setup.sql.';
     return raw;
   }
-
+  async function rpc(name,args){
+    const {data,error}=await sb.rpc(name,args);
+    if(error)throw error;
+    return data;
+  }
+  function firstRow(data){return Array.isArray(data)?data[0]:data;}
   function classParts(cls){
-    const m = String(cls||'').match(/^(X|XI|XII)-(\d+)$/);
-    return m ? {tier:m[1],num:Number(m[2])} : {tier:'X',num:1};
+    const m=String(cls||'').match(/^(X|XI|XII)-(\d+)$/);
+    return m?{tier:m[1],num:Number(m[2])}:{tier:'X',num:1};
   }
-
-  function setAuthMode(mode){
-    authMode = mode;
-    const registering = mode === 'register';
-    document.getElementById('studentTab').classList.toggle('active', !registering);
-    document.getElementById('adminTab').classList.toggle('active', registering);
-    document.getElementById('registerFields').hidden = !registering;
-    document.getElementById('registerName').required = registering;
-    document.getElementById('registerClass').required = registering;
-    document.getElementById('authSubmitBtn').textContent = registering ? 'Buat akun' : 'Masuk';
-    document.getElementById('loginIdentityLabel').textContent = registering ? 'Email' : 'Email / username';
-    document.getElementById('loginUsername').placeholder = registering ? 'nama@email.com' : 'nama@email.com atau username';
-    document.getElementById('loginUsername').autocomplete = registering ? 'email' : 'username';
-    document.getElementById('loginPassword').autocomplete = registering ? 'new-password' : 'current-password';
-    document.getElementById('authHelp').innerHTML = registering
-      ? 'Pilih kelas Anda. Setelah mengonfirmasi email, masuk kembali. Teman yang memilih kelas sama akan melihat daftar yang sama.'
-      : 'Belum punya akun? Pilih <b>Buat akun</b>. Teman Anda harus memilih kelas yang sama agar dapat melihat daftar yang sama.';
-    loginError.textContent = '';
-    loginError.style.color = '';
+  function saveToken(token){
+    sessionToken=token||'';
+    try{if(sessionToken)localStorage.setItem(SESSION_KEY,sessionToken);else localStorage.removeItem(SESSION_KEY);}catch(e){}
   }
+  function storedToken(){try{return localStorage.getItem(SESSION_KEY)||'';}catch(e){return '';}}
 
-  function showLogin(){
-    currentUser = null;
-    currentProfile = null;
-    completionMap = {};
-    tasks = [];
-    editingTaskId = null;
+  function setMode(mode){
+    authMode=mode;
+    const admin=mode==='admin';
+    document.getElementById('studentTab').classList.toggle('active',!admin);
+    document.getElementById('adminTab').classList.toggle('active',admin);
+    document.getElementById('loginUsername').placeholder=admin?'Contoh: adminX1':'Contoh: X1-siswa01';
+    document.getElementById('authSubmitBtn').textContent=admin?'Masuk sebagai admin':'Masuk sebagai siswa';
+    document.getElementById('authHelp').innerHTML=admin
+      ? '<b>Contoh admin X-1:</b> adminX1 · AdminX1!<br>Setiap kelas memiliki satu akun admin.'
+      : '<b>Contoh siswa X-1:</b> X1-siswa01 · Siswa01!X1<br>Tersedia siswa01 sampai siswa40 untuk setiap kelas.';
+    loginError.textContent='';
+    document.getElementById('loginPassword').value='';
+  }
+  function showLogin(message=''){
+    currentAccount=null;sessionToken='';tasks=[];editingTaskId=null;
     document.body.classList.remove('authenticated','admin-view','student-view');
-    authScreen.classList.remove('hidden');
-    accountBar.classList.remove('visible');
+    authScreen.classList.remove('hidden');accountBar.classList.remove('visible');
     setSyncStatus('', 'Belum masuk');
-    if(realtimeChannel){ sb.removeChannel(realtimeChannel); realtimeChannel = null; }
+    if(message)loginError.textContent=message;
+  }
+  async function invalidateSession(){
+    const old=sessionToken;saveToken('');
+    if(old)try{await rpc('kk_logout',{p_session_token:old});}catch(e){}
+  }
+
+  function applyAccount(row,token){
+    if(!row||!row.class_name||!row.role)throw new Error('Data akun tidak lengkap.');
+    sessionToken=token||sessionToken;
+    currentAccount={
+      accountId:row.account_id,
+      username:row.username,
+      displayName:row.display_name||row.username,
+      role:row.role,
+      className:row.class_name
+    };
+    saveToken(sessionToken);
+    const cp=classParts(currentAccount.className);state.tier=cp.tier;state.num=cp.num;
+    authScreen.classList.add('hidden');accountBar.classList.add('visible');
+    document.body.classList.add('authenticated');
+    document.body.classList.toggle('admin-view',currentAccount.role==='admin');
+    document.body.classList.toggle('student-view',currentAccount.role==='student');
+    document.getElementById('accountChip').textContent=(currentAccount.role==='admin'?'ADMIN · ':'SISWA · ')+currentAccount.username+' · Kelas '+currentAccount.className;
+    taskFilter='all';tasksExpanded=false;editingTaskId=null;
+    document.querySelectorAll('.task-filter').forEach(b=>b.classList.toggle('active',b.dataset.filter==='all'));
+    render();
   }
 
   function rowToTask(r){
-    const recurrence = r.recurrence || 'none';
-    const dueType = recurrence === 'weekly' ? 'weekly'
-      : recurrence === 'biweekly' ? 'biweekly'
-      : (r.due_date ? 'specific' : 'unknown');
+    const recurrence=r.recurrence||'none';
     return {
-      id:r.id,
-      category:r.category === 'exam' ? 'exam' : 'task',
-      name:r.title || '',
-      subject:r.subject || '',
-      note:r.description || '',
-      dueType,
-      due:r.due_date || null,
-      recurrenceStart:(recurrence === 'weekly' || recurrence === 'biweekly') ? r.due_date : null,
-      done:!!completionMap[r.id],
-      createdAt:r.created_at,
-      updatedAt:r.updated_at
+      id:r.id,category:r.category==='exam'?'exam':'task',name:r.title||'',subject:r.subject||'',note:r.description||'',
+      dueType:recurrence==='weekly'?'weekly':recurrence==='biweekly'?'biweekly':(r.due_date?'specific':'unknown'),
+      due:r.due_date||null,done:!!r.done,createdAt:r.created_at,updatedAt:r.updated_at
     };
   }
-
-  function isoLocalDate(d){
-    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  }
-  function nextMonday(){
-    const d=new Date(); d.setHours(0,0,0,0);
-    const add=(8-d.getDay())%7 || 7;
-    d.setDate(d.getDate()+add);
-    return isoLocalDate(d);
-  }
-  function taskPayload(t){
-    const repeating = t.dueType === 'weekly' || t.dueType === 'biweekly';
-    return {
-      class_id:currentProfile.class_id,
-      title:t.name.trim(),
-      subject:(t.subject||'').trim(),
-      description:(t.note||'').trim(),
-      category:t.category === 'exam' ? 'exam' : 'task',
-      due_date:t.dueType === 'specific' ? t.due : (repeating ? (t.due || nextMonday()) : null),
-      recurrence:t.dueType === 'weekly' ? 'weekly' : t.dueType === 'biweekly' ? 'biweekly' : 'none',
-      created_by:currentUser.id
-    };
-  }
-
-  async function ensureProfile(user){
-    let {data, error} = await sb.from('profiles')
-      .select('user_id,username,display_name,role,class_id,classes(name)')
-      .eq('user_id', user.id).maybeSingle();
-    if(error) throw error;
-    if(data) return data;
-
-    // Fallback for a newly confirmed account if the database trigger has not run.
-    const meta = user.user_metadata || {};
-    const className = meta.class_name;
-    if(!CLASS_LIST.includes(className)) throw new Error('Profil belum memiliki kelas. Buat akun kembali dan pilih kelas.');
-    const {data:cls,error:classError} = await sb.from('classes').select('id,name').eq('name',className).single();
-    if(classError) throw classError;
-    const profile = {
-      user_id:user.id,
-      username:(user.email||'').toLowerCase(),
-      display_name:meta.display_name || (user.email||'Anggota').split('@')[0],
-      role:'student',
-      class_id:cls.id
-    };
-    const {error:insertError} = await sb.from('profiles').insert(profile);
-    if(insertError && !/duplicate/i.test(insertError.message||'')) throw insertError;
-    ({data,error} = await sb.from('profiles')
-      .select('user_id,username,display_name,role,class_id,classes(name)')
-      .eq('user_id', user.id).single());
-    if(error) throw error;
-    return data;
-  }
-
   async function loadOnlineData(silent=false){
-    if(!currentUser || !currentProfile) return;
-    if(!silent) setSyncStatus('syncing','Menyinkronkan…');
+    if(!currentAccount||!sessionToken)return;
+    if(silent&&editingTaskId)return;
+    if(!silent)setSyncStatus('syncing','Menyinkronkan…');
     try{
-      const [assignmentResult, completionResult] = await Promise.all([
-        sb.from('assignments')
-          .select('id,class_id,title,subject,description,category,due_date,recurrence,created_by,created_at,updated_at')
-          .eq('class_id', currentProfile.class_id)
-          .order('created_at',{ascending:true}),
-        sb.from('assignment_completions')
-          .select('assignment_id')
-          .eq('user_id', currentUser.id)
-      ]);
-      if(assignmentResult.error) throw assignmentResult.error;
-      if(completionResult.error) throw completionResult.error;
-      completionMap = Object.fromEntries((completionResult.data||[]).map(x=>[x.assignment_id,true]));
-      tasks = (assignmentResult.data||[]).map(rowToTask);
-      renderTasks();
-      setSyncStatus('online','Online · tersimpan');
+      const rows=await rpc('kk_list_assignments',{p_session_token:sessionToken});
+      tasks=(rows||[]).map(rowToTask);renderTasks();setSyncStatus('online','Online · tersimpan');
     }catch(err){
-      console.error('Sync failed:',err);
-      setSyncStatus('offline','Gagal sinkron');
-      if(!silent) showToast(errorMessage(err));
+      console.error(err);setSyncStatus('offline','Gagal sinkron');
+      if(/sesi tidak valid|kedaluwarsa/i.test(String(err?.message||''))){saveToken('');showLogin('Sesi berakhir. Silakan masuk kembali.');}
+      else if(!silent)showToast(errorMessage(err));
     }
   }
+  function scheduleReload(){clearTimeout(reloadTimer);reloadTimer=setTimeout(()=>loadOnlineData(true),250);}
 
-  function scheduleReload(){
-    clearTimeout(reloadTimer);
-    reloadTimer = setTimeout(()=>loadOnlineData(true),250);
+  function isoLocalDate(d){
+    const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;
   }
-
-  function subscribeRealtime(){
-    if(realtimeChannel) sb.removeChannel(realtimeChannel);
-    realtimeChannel = sb.channel('kelas-'+currentProfile.class_id+'-'+currentUser.id)
-      .on('postgres_changes',{
-        event:'*',schema:'public',table:'assignments',filter:'class_id=eq.'+currentProfile.class_id
-      },scheduleReload)
-      .on('postgres_changes',{
-        event:'*',schema:'public',table:'assignment_completions',filter:'user_id=eq.'+currentUser.id
-      },scheduleReload)
-      .subscribe(status=>{
-        if(status === 'SUBSCRIBED') setSyncStatus('online','Online · tersimpan');
-        else if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setSyncStatus('offline','Koneksi terputus');
-      });
-  }
-
-  async function boot(session){
-    if(!session?.user) return showLogin();
-    if(bootPromise) return bootPromise;
-    bootPromise = (async()=>{
-      setSyncStatus('syncing','Menghubungkan…');
-      try{
-        currentUser = session.user;
-        currentProfile = await ensureProfile(session.user);
-        const classRel = Array.isArray(currentProfile.classes) ? currentProfile.classes[0] : currentProfile.classes;
-        const className = classRel?.name;
-        if(!CLASS_LIST.includes(className)) throw new Error('Kelas akun tidak valid.');
-        const cp = classParts(className);
-        state.tier=cp.tier; state.num=cp.num;
-        authScreen.classList.add('hidden');
-        accountBar.classList.add('visible');
-        document.body.classList.add('authenticated','admin-view');
-        document.body.classList.remove('student-view');
-        const name=currentProfile.display_name || session.user.email;
-        document.getElementById('accountChip').textContent = name+' · Kelas '+className;
-        editingTaskId=null;
-        render();
-        await loadOnlineData();
-        subscribeRealtime();
-      }catch(err){
-        console.error('Unable to start online session:',err);
-        loginError.textContent=errorMessage(err);
-        setSyncStatus('offline','Gagal terhubung');
-        await sb.auth.signOut().catch(()=>{});
-        showLogin();
-      }finally{ bootPromise=null; }
-    })();
-    return bootPromise;
-  }
-
-  // ---------- Online task rendering and mutations ----------
-  function effectiveDue(t){ return t.due || t.recurrenceStart || null; }
-  function isOverdueOnline(t){
-    const d=effectiveDue(t);
-    if(!d || t.done || t.dueType==='weekly' || t.dueType==='biweekly') return false;
-    return parseDueDate(d) < todayMidnight();
-  }
+  function nextMonday(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+((8-d.getDay())%7||7));return isoLocalDate(d);}
+  function effectiveDue(t){return t.due||null;}
+  function isOverdueOnline(t){const d=effectiveDue(t);return !!d&&!t.done&&t.dueType==='specific'&&parseDueDate(d)<todayMidnight();}
   function onlineBadge(t){
-    if(t.done) return {cls:'b-done',label:'Selesai'};
-    if(t.dueType==='weekly') return {cls:'b-weekly',label:'↻ Setiap minggu · Senin'};
-    if(t.dueType==='biweekly') return {cls:'b-biweekly',label:'↻ Setiap 2 minggu · Senin'};
-    if(t.dueType==='unknown' || !t.due) return {cls:'b-unknown',label:'Belum diketahui'};
+    if(t.done)return {cls:'b-done',label:'Selesai'};
+    if(t.dueType==='weekly')return {cls:'b-weekly',label:'↻ Setiap minggu · Senin'};
+    if(t.dueType==='biweekly')return {cls:'b-biweekly',label:'↻ Setiap 2 minggu · Senin'};
+    if(t.dueType==='unknown'||!t.due)return {cls:'b-unknown',label:'Belum diketahui'};
     const diff=Math.round((parseDueDate(t.due)-todayMidnight())/86400000);
-    if(diff<0) return {cls:'b-overdue',label:`Lewat ${Math.abs(diff)} hari`};
-    if(diff===0) return {cls:'b-today',label:'Hari ini'};
-    if(diff===1) return {cls:'b-soon',label:'Besok'};
-    if(diff<=3) return {cls:'b-soon',label:`${diff} hari lagi`};
+    if(diff<0)return {cls:'b-overdue',label:`Lewat ${Math.abs(diff)} hari`};
+    if(diff===0)return {cls:'b-today',label:'Hari ini'};
+    if(diff===1)return {cls:'b-soon',label:'Besok'};
+    if(diff<=3)return {cls:'b-soon',label:`${diff} hari lagi`};
     return {cls:'b-later',label:formatDueDate(t.due)};
   }
   function onlineSort(a,b){
-    if(a.done!==b.done) return a.done?1:-1;
-    const ao=isOverdueOnline(a),bo=isOverdueOnline(b);
-    if(ao!==bo) return ao?1:-1;
-    const ad=effectiveDue(a),bd=effectiveDue(b);
-    if(ad&&bd) return parseDueDate(ad)-parseDueDate(bd);
-    if(ad) return -1; if(bd) return 1;
+    if(a.done!==b.done)return a.done?1:-1;
+    const ao=isOverdueOnline(a),bo=isOverdueOnline(b);if(ao!==bo)return ao?1:-1;
+    const ad=effectiveDue(a),bd=effectiveDue(b);if(ad&&bd)return parseDueDate(ad)-parseDueDate(bd);if(ad)return -1;if(bd)return 1;
     return String(a.name).localeCompare(String(b.name),'id');
   }
   function matchesTaskFilter(t){
-    if(taskFilter==='pending') return !t.done;
-    if(taskFilter==='today') return t.dueType==='specific' && t.due===isoLocalDate(new Date());
+    if(taskFilter==='pending')return !t.done;
+    if(taskFilter==='today')return t.dueType==='specific'&&t.due===isoLocalDate(new Date());
     return true;
   }
 
   async function setCompletion(t,done){
-    if(!currentUser) return;
+    if(currentAccount?.role!=='student')return;
     setSyncStatus('syncing','Menyimpan…');
     try{
-      if(done){
-        const {error}=await sb.from('assignment_completions').upsert({
-          assignment_id:t.id,user_id:currentUser.id,completed_at:new Date().toISOString()
-        },{onConflict:'assignment_id,user_id'});
-        if(error) throw error;
-        completionMap[t.id]=true;
-      }else{
-        const {error}=await sb.from('assignment_completions').delete()
-          .eq('assignment_id',t.id).eq('user_id',currentUser.id);
-        if(error) throw error;
-        delete completionMap[t.id];
-      }
-      const found=tasks.find(x=>x.id===t.id); if(found) found.done=done;
-      renderTasks();
-      setSyncStatus('online','Online · tersimpan');
-    }catch(err){ showToast(errorMessage(err)); setSyncStatus('offline','Gagal menyimpan'); await loadOnlineData(true); }
+      await rpc('kk_set_completion',{p_session_token:sessionToken,p_assignment_id:t.id,p_done:done});
+      const found=tasks.find(x=>x.id===t.id);if(found)found.done=done;
+      renderTasks();setSyncStatus('online','Online · tersimpan');
+    }catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menyimpan');await loadOnlineData(true);}
   }
-
   async function deleteAssignment(t){
-    if(!confirm('Hapus “'+t.name+'” untuk semua anggota kelas?')) return;
+    if(currentAccount?.role!=='admin')return;
+    if(!confirm('Hapus “'+t.name+'” untuk seluruh kelas?'))return;
     setSyncStatus('syncing','Menghapus…');
-    const {error}=await sb.from('assignments').delete().eq('id',t.id);
-    if(error){showToast(errorMessage(error));setSyncStatus('offline','Gagal menghapus');return;}
-    tasks=tasks.filter(x=>x.id!==t.id); delete completionMap[t.id];
-    renderTasks(); setSyncStatus('online','Online · tersimpan'); showToast('Item dihapus dari kelas.');
+    try{await rpc('kk_delete_assignment',{p_session_token:sessionToken,p_assignment_id:t.id});tasks=tasks.filter(x=>x.id!==t.id);renderTasks();setSyncStatus('online','Online · tersimpan');showToast('Item dihapus.');}
+    catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menghapus');}
   }
 
   function buildOnlineEditForm(t){
-    const wrap=document.createElement('div');
-    wrap.className='task-item editing';
-    wrap.innerHTML=`
-      <div class="task-form-row">
-        <div class="task-field"><span class="field-label">Jenis</span><select class="task-input" data-edit="category"><option value="task">Tugas / PR</option><option value="exam">Ulangan</option></select></div>
-        <div class="task-field grow"><span class="field-label">Nama</span><input class="task-input" data-edit="name"></div>
-        <div class="task-field"><span class="field-label">Mapel</span><input class="task-input" data-edit="subject" list="subjectDatalist"></div>
-        <div class="task-field"><span class="field-label">Jenis tenggat</span><select class="task-input" data-edit="dueType"><option value="specific">Tanggal tertentu</option><option value="weekly">Setiap minggu</option><option value="biweekly">Setiap 2 minggu</option><option value="unknown">Belum diketahui</option></select></div>
-        <div class="task-field" data-edit-field="due"><span class="field-label">Tenggat</span><input class="task-input" type="date" data-edit="due"></div>
-      </div>
+    const wrap=document.createElement('div');wrap.className='task-item editing';
+    wrap.innerHTML=`<div class="task-form-row">
+      <div class="task-field"><span class="field-label">Jenis</span><select class="task-input" data-edit="category"><option value="task">Tugas / PR</option><option value="exam">Ulangan</option></select></div>
+      <div class="task-field grow"><span class="field-label">Nama</span><input class="task-input" data-edit="name"></div>
+      <div class="task-field"><span class="field-label">Mapel</span><input class="task-input" data-edit="subject" list="subjectDatalist"></div>
+      <div class="task-field"><span class="field-label">Jenis tenggat</span><select class="task-input" data-edit="dueType"><option value="specific">Tanggal tertentu</option><option value="weekly">Setiap minggu</option><option value="biweekly">Setiap 2 minggu</option><option value="unknown">Belum diketahui</option></select></div>
+      <div class="task-field" data-edit-field="due"><span class="field-label">Tenggat</span><input class="task-input" type="date" data-edit="due"></div></div>
       <div class="task-form-row" style="margin-top:2px"><div class="task-field grow"><span class="field-label">Catatan</span><input class="task-input" data-edit="note"></div></div>
       <div class="task-edit-actions"><button type="button" class="task-cancel-btn" data-action="cancel">Batal</button><button type="button" class="task-save-btn" data-action="save">Simpan online</button></div>`;
     const get=n=>wrap.querySelector(`[data-edit="${n}"]`);
-    get('category').value=t.category||'task'; get('name').value=t.name||''; get('subject').value=t.subject||'';
-    get('dueType').value=t.dueType||'specific'; get('due').value=t.dueType==='specific'?(t.due||''):''; get('note').value=t.note||'';
-    const syncDue=()=>{const specific=get('dueType').value==='specific';wrap.querySelector('[data-edit-field="due"]').style.display=specific?'':'none';get('due').required=specific;};
-    syncDue(); get('dueType').onchange=syncDue;
+    get('category').value=t.category;get('name').value=t.name;get('subject').value=t.subject||'';get('dueType').value=t.dueType;get('due').value=t.dueType==='specific'?(t.due||''):'';get('note').value=t.note||'';
+    const syncDue=()=>{const specific=get('dueType').value==='specific';wrap.querySelector('[data-edit-field="due"]').style.display=specific?'':'none';get('due').required=specific;};syncDue();get('dueType').onchange=syncDue;
     wrap.querySelector('[data-action="cancel"]').onclick=()=>{editingTaskId=null;renderTasks();};
     wrap.querySelector('[data-action="save"]').onclick=async()=>{
-      const name=get('name').value.trim(),dueType=get('dueType').value,due=get('due').value;
-      if(!name){get('name').focus();return;} if(dueType==='specific'&&!due){get('due').focus();return;}
-      const changed={...t,category:get('category').value,name,subject:get('subject').value,note:get('note').value,dueType,due:dueType==='specific'?due:((dueType==='weekly'||dueType==='biweekly')?(t.due||nextMonday()):null)};
+      if(currentAccount?.role!=='admin')return;
+      const name=get('name').value.trim(),dueType=get('dueType').value,due=get('due').value;if(!name){get('name').focus();return;}if(dueType==='specific'&&!due){get('due').focus();return;}
       const btn=wrap.querySelector('[data-action="save"]');btn.disabled=true;btn.textContent='Menyimpan…';setSyncStatus('syncing','Menyimpan…');
-      const payload=taskPayload(changed); delete payload.created_by;
-      const {error}=await sb.from('assignments').update(payload).eq('id',t.id);
-      if(error){showToast(errorMessage(error));btn.disabled=false;btn.textContent='Simpan online';setSyncStatus('offline','Gagal menyimpan');return;}
-      editingTaskId=null;await loadOnlineData(true);showToast('Perubahan tersimpan online.');
+      try{
+        await rpc('kk_update_assignment',{p_session_token:sessionToken,p_assignment_id:t.id,p_title:name,p_subject:get('subject').value.trim(),p_description:get('note').value.trim(),p_category:get('category').value,p_due_date:dueType==='specific'?due:((dueType==='weekly'||dueType==='biweekly')?(t.due||nextMonday()):null),p_recurrence:dueType==='weekly'?'weekly':dueType==='biweekly'?'biweekly':'none'});
+        editingTaskId=null;await loadOnlineData(true);showToast('Perubahan tersimpan untuk seluruh kelas.');
+      }catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menyimpan');btn.disabled=false;btn.textContent='Simpan online';}
     };
-    setTimeout(()=>{get('name').focus();get('name').select();},0);
-    return wrap;
+    setTimeout(()=>{get('name').focus();get('name').select();},0);return wrap;
   }
 
   function buildOnlineTaskItem(t){
-    if(t.id===editingTaskId) return buildOnlineEditForm(t);
-    const item=document.createElement('div');
-    item.className='task-item'+(t.done?' done':'')+(isOverdueOnline(t)?' overdue':'');
-    const check=document.createElement('label');check.className='task-check';check.style.position='relative';check.textContent='✓';check.title=t.done?'Tandai belum selesai':'Tandai selesai';
-    const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!t.done;cb.setAttribute('aria-label',check.title);cb.style.cssText='position:absolute;opacity:0;inset:0;width:20px;height:20px;margin:0;cursor:pointer';
-    cb.onchange=()=>setCompletion(t,cb.checked);check.appendChild(cb);
+    if(t.id===editingTaskId&&currentAccount?.role==='admin')return buildOnlineEditForm(t);
+    const item=document.createElement('div');item.className='task-item'+(t.done?' done':'')+(isOverdueOnline(t)?' overdue':'');
+    if(currentAccount?.role==='student'){
+      const check=document.createElement('label');check.className='task-check';check.style.position='relative';check.textContent='✓';check.title=t.done?'Tandai belum selesai':'Tandai selesai';
+      const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!t.done;cb.setAttribute('aria-label',check.title);cb.style.cssText='position:absolute;opacity:0;inset:0;width:20px;height:20px;margin:0;cursor:pointer';cb.onchange=()=>setCompletion(t,cb.checked);check.appendChild(cb);item.appendChild(check);
+    }
     const body=document.createElement('div');body.className='task-body';const badge=onlineBadge(t);
     body.innerHTML=`<div class="task-name"></div><div class="task-meta">${t.subject?'<span class="task-subject"></span>':''}<span class="task-badge ${badge.cls}">${badge.label}</span></div>${t.note?'<div class="task-note"></div>':''}`;
-    body.querySelector('.task-name').textContent=t.name;if(t.subject)body.querySelector('.task-subject').textContent=t.subject;if(t.note)body.querySelector('.task-note').textContent='📝 '+t.note;
-    const edit=document.createElement('button');edit.className='task-edit-btn';edit.type='button';edit.title='Edit untuk seluruh kelas';edit.textContent='✎';edit.onclick=()=>{editingTaskId=t.id;tasksExpanded=true;renderTasks();};
-    const del=document.createElement('button');del.className='task-del';del.type='button';del.title='Hapus untuk seluruh kelas';del.textContent='✕';del.onclick=()=>deleteAssignment(t);
-    item.append(check,body,edit,del);return item;
+    body.querySelector('.task-name').textContent=t.name;if(t.subject)body.querySelector('.task-subject').textContent=t.subject;if(t.note)body.querySelector('.task-note').textContent='📝 '+t.note;item.appendChild(body);
+    if(currentAccount?.role==='admin'){
+      const edit=document.createElement('button');edit.className='task-edit-btn';edit.type='button';edit.title='Edit tugas';edit.textContent='✎';edit.onclick=()=>{editingTaskId=t.id;tasksExpanded=true;renderTasks();};
+      const del=document.createElement('button');del.className='task-del';del.type='button';del.title='Hapus tugas';del.textContent='✕';del.onclick=()=>deleteAssignment(t);item.append(edit,del);
+    }
+    return item;
   }
 
   function renderOnlineTasks(){
     const taskList=document.getElementById('taskList'),examList=document.getElementById('examList');
-    if(!currentUser){taskList.innerHTML='';examList.innerHTML='';return;}
-    const filtered=tasks.filter(matchesTaskFilter);
-    const taskItems=filtered.filter(t=>(t.category||'task')!=='exam').sort(onlineSort);
-    const examItems=filtered.filter(t=>t.category==='exam').sort(onlineSort);
-    const pending=tasks.filter(t=>!t.done).length;
-    const count=document.getElementById('taskCount');count.textContent=pending?`${pending} item belum selesai`:'Semua item beres ✓';count.classList.toggle('all-done',!pending&&tasks.length>0);
-    document.getElementById('taskSectionCount').textContent=`${taskItems.length} item`;
-    document.getElementById('examSectionCount').textContent=`${examItems.length} item`;
-    taskList.innerHTML='';examList.innerHTML='';
-    taskItems.forEach(t=>taskList.appendChild(buildOnlineTaskItem(t)));examItems.forEach(t=>examList.appendChild(buildOnlineTaskItem(t)));
-    if(!taskList.children.length)taskList.innerHTML='<div class="task-empty">Belum ada tugas atau PR.</div>';
-    if(!examList.children.length)examList.innerHTML='<div class="task-empty">Belum ada ulangan.</div>';
+    if(!currentAccount){taskList.innerHTML='';examList.innerHTML='';return;}
+    const filtered=tasks.filter(matchesTaskFilter),taskItems=filtered.filter(t=>t.category!=='exam').sort(onlineSort),examItems=filtered.filter(t=>t.category==='exam').sort(onlineSort);
+    const count=document.getElementById('taskCount');
+    if(currentAccount.role==='admin'){count.textContent=`${tasks.length} item dibagikan`;count.classList.remove('all-done');}
+    else{const pending=tasks.filter(t=>!t.done).length;count.textContent=pending?`${pending} item belum selesai`:'Semua item beres ✓';count.classList.toggle('all-done',!pending&&tasks.length>0);}
+    document.getElementById('taskSectionCount').textContent=`${taskItems.length} item`;document.getElementById('examSectionCount').textContent=`${examItems.length} item`;
+    taskList.innerHTML='';examList.innerHTML='';taskItems.forEach(t=>taskList.appendChild(buildOnlineTaskItem(t)));examItems.forEach(t=>examList.appendChild(buildOnlineTaskItem(t)));
+    if(!taskList.children.length)taskList.innerHTML='<div class="task-empty">Belum ada tugas atau PR.</div>';if(!examList.children.length)examList.innerHTML='<div class="task-empty">Belum ada ulangan.</div>';
     [taskList,examList].forEach(list=>[...list.querySelectorAll('.task-item')].forEach((el,i)=>{el.style.display=(!tasksExpanded&&i>=10)?'none':'';}));
-    const hasMore=taskItems.length>10||examItems.length>10,expand=document.getElementById('taskExpandBtn');
-    expand.style.display=hasMore?'':'none';expand.classList.toggle('expanded',tasksExpanded);expand.setAttribute('aria-expanded',String(tasksExpanded));
-    document.getElementById('taskExpandText').textContent=tasksExpanded?'Kecilkan daftar':'Tampilkan semua';document.getElementById('taskExpandIcon').textContent=tasksExpanded?'⌃':'⌄';
-    const done=tasks.filter(t=>t.done).length,pct=tasks.length?Math.round(done/tasks.length*100):0;
-    document.getElementById('taskProgressBar').style.width=pct+'%';document.getElementById('taskProgressLabel').textContent=`${pct}% selesai · ${done}/${tasks.length}`;
+    const more=taskItems.length>10||examItems.length>10,expand=document.getElementById('taskExpandBtn');expand.style.display=more?'':'none';expand.classList.toggle('expanded',tasksExpanded);expand.setAttribute('aria-expanded',String(tasksExpanded));document.getElementById('taskExpandText').textContent=tasksExpanded?'Kecilkan daftar':'Tampilkan semua';document.getElementById('taskExpandIcon').textContent=tasksExpanded?'⌃':'⌄';
+    const done=currentAccount.role==='student'?tasks.filter(t=>t.done).length:0,pct=tasks.length?Math.round(done/tasks.length*100):0;document.getElementById('taskProgressBar').style.width=pct+'%';document.getElementById('taskProgressLabel').textContent=`${pct}% selesai · ${done}/${tasks.length}`;
   }
-  renderTasks = renderOnlineTasks;
+  renderTasks=renderOnlineTasks;
 
   document.getElementById('taskForm').addEventListener('submit',async e=>{
-    e.preventDefault(); if(!currentUser||!currentProfile)return;
-    const name=document.getElementById('taskName').value.trim(),dueType=document.getElementById('taskDueType').value,due=document.getElementById('taskDue').value;
-    if(!name)return;if(dueType==='specific'&&!due)return;
-    const t={category:document.getElementById('taskCategory').value,name,subject:document.getElementById('taskSubject').value,note:document.getElementById('taskNote').value,dueType,due:dueType==='specific'?due:((dueType==='weekly'||dueType==='biweekly')?nextMonday():null)};
+    e.preventDefault();if(currentAccount?.role!=='admin')return;
+    const name=document.getElementById('taskName').value.trim(),dueType=document.getElementById('taskDueType').value,due=document.getElementById('taskDue').value;if(!name)return;if(dueType==='specific'&&!due)return;
     const btn=e.currentTarget.querySelector('[type="submit"]');btn.disabled=true;btn.textContent='Menyimpan…';setSyncStatus('syncing','Menyimpan…');
-    const {error}=await sb.from('assignments').insert(taskPayload(t));
-    btn.disabled=false;btn.textContent='+ Tambah';
-    if(error){showToast(errorMessage(error));setSyncStatus('offline','Gagal menyimpan');return;}
-    e.currentTarget.reset();document.getElementById('taskDueDateField').style.display='';document.getElementById('taskDue').required=true;
-    await loadOnlineData(true);document.getElementById('taskName').focus();showToast('Tersimpan online untuk kelas ini.');
-  });
-  document.querySelectorAll('.task-filter').forEach(btn=>btn.addEventListener('click',()=>{
-    taskFilter=btn.dataset.filter||'all';tasksExpanded=false;document.querySelectorAll('.task-filter').forEach(b=>b.classList.toggle('active',b===btn));renderTasks();
-  }));
-  document.getElementById('taskExpandBtn').addEventListener('click',()=>{tasksExpanded=!tasksExpanded;renderTasks();});
-  document.getElementById('completeAllBtn').addEventListener('click',async()=>{
-    if(!currentUser||!tasks.length)return;setSyncStatus('syncing','Menyimpan…');
-    const rows=tasks.map(t=>({assignment_id:t.id,user_id:currentUser.id,completed_at:new Date().toISOString()}));
-    const {error}=await sb.from('assignment_completions').upsert(rows,{onConflict:'assignment_id,user_id'});
-    if(error){showToast(errorMessage(error));setSyncStatus('offline','Gagal menyimpan');return;}await loadOnlineData(true);showToast('Semua ditandai selesai untuk akun Anda.');
-  });
-  document.getElementById('clearDoneBtn').addEventListener('click',async()=>{
-    if(!currentUser)return;setSyncStatus('syncing','Menyimpan…');
-    const {error}=await sb.from('assignment_completions').delete().eq('user_id',currentUser.id);
-    if(error){showToast(errorMessage(error));setSyncStatus('offline','Gagal menyimpan');return;}await loadOnlineData(true);showToast('Tanda selesai akun Anda direset.');
-  });
-
-  // ---------- Authentication ----------
-  document.getElementById('studentTab').onclick=()=>setAuthMode('login');
-  document.getElementById('adminTab').onclick=()=>setAuthMode('register');
-  document.getElementById('loginForm').addEventListener('submit',async e=>{
-    e.preventDefault();
-    loginError.textContent='';loginError.style.color='';
-    const identity=document.getElementById('loginUsername').value.trim().toLowerCase();
-    const email = authMode==='register' || identity.includes('@') ? identity : identity+'@jadwalkanisius.local';
-    const password=document.getElementById('loginPassword').value;
-    const btn=document.getElementById('authSubmitBtn');btn.disabled=true;btn.textContent=authMode==='register'?'Membuat akun…':'Masuk…';
     try{
-      if(authMode==='register'){
-        if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Masukkan alamat email yang valid.');
-        const displayName=document.getElementById('registerName').value.trim();
-        const className=classSelect.value;
-        if(!displayName||!CLASS_LIST.includes(className))throw new Error('Isi nama dan pilih kelas.');
-        const redirectTo=(location.protocol==='http:'||location.protocol==='https:')?location.origin+location.pathname:undefined;
-        const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:redirectTo,data:{display_name:displayName,class_name:className}}});
-        if(error)throw error;
-        if(data.session){await boot(data.session);}else{
-          loginError.style.color='#2f6b46';loginError.textContent='Akun dibuat. Periksa email Anda dan klik tautan konfirmasi, lalu masuk.';
-          document.getElementById('authHelp').textContent='Sesudah konfirmasi email, kembali ke halaman ini dan masuk.';
-        }
-      }else{
-        const {data,error}=await sb.auth.signInWithPassword({email,password});
-        if(error)throw error;
-        await boot(data.session);
-      }
-    }catch(err){loginError.textContent=errorMessage(err);}
-    finally{btn.disabled=false;btn.textContent=authMode==='register'?'Buat akun':'Masuk';}
+      await rpc('kk_create_assignment',{p_session_token:sessionToken,p_title:name,p_subject:document.getElementById('taskSubject').value.trim(),p_description:document.getElementById('taskNote').value.trim(),p_category:document.getElementById('taskCategory').value,p_due_date:dueType==='specific'?due:((dueType==='weekly'||dueType==='biweekly')?nextMonday():null),p_recurrence:dueType==='weekly'?'weekly':dueType==='biweekly'?'biweekly':'none'});
+      e.currentTarget.reset();document.getElementById('taskDueDateField').style.display='';document.getElementById('taskDue').required=true;await loadOnlineData(true);document.getElementById('taskName').focus();showToast('Tersimpan untuk seluruh siswa di kelas ini.');
+    }catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menyimpan');}
+    finally{btn.disabled=false;btn.textContent='+ Tambah';}
   });
-  document.getElementById('logoutBtn').onclick=async()=>{await sb.auth.signOut();showLogin();setAuthMode('login');document.getElementById('loginForm').reset();};
+  document.querySelectorAll('.task-filter').forEach(btn=>btn.addEventListener('click',()=>{taskFilter=btn.dataset.filter||'all';tasksExpanded=false;document.querySelectorAll('.task-filter').forEach(b=>b.classList.toggle('active',b===btn));renderTasks();}));
+  document.getElementById('taskExpandBtn').addEventListener('click',()=>{tasksExpanded=!tasksExpanded;renderTasks();});
+  document.getElementById('completeAllBtn').addEventListener('click',async()=>{if(currentAccount?.role!=='student')return;setSyncStatus('syncing','Menyimpan…');try{await rpc('kk_complete_all',{p_session_token:sessionToken});await loadOnlineData(true);showToast('Semua ditandai selesai untuk akun Anda.');}catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menyimpan');}});
+  document.getElementById('clearDoneBtn').addEventListener('click',async()=>{if(currentAccount?.role!=='student')return;setSyncStatus('syncing','Menyimpan…');try{await rpc('kk_reset_completions',{p_session_token:sessionToken});await loadOnlineData(true);showToast('Tanda selesai akun Anda direset.');}catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menyimpan');}});
+
+  document.getElementById('studentTab').onclick=()=>setMode('student');document.getElementById('adminTab').onclick=()=>setMode('admin');
+  document.getElementById('loginForm').addEventListener('submit',async e=>{
+    e.preventDefault();loginError.textContent='';const username=document.getElementById('loginUsername').value.trim(),password=document.getElementById('loginPassword').value,btn=document.getElementById('authSubmitBtn');btn.disabled=true;btn.textContent='Memeriksa…';
+    try{
+      const row=firstRow(await rpc('kk_login',{p_username:username,p_password:password}));
+      if(!row?.session_token)throw new Error('Username atau password salah.');
+      if(row.role!==authMode){try{await rpc('kk_logout',{p_session_token:row.session_token});}catch(e){}throw new Error(row.role==='admin'?'Akun ini adalah akun admin. Pilih tab Admin Kelas.':'Akun ini adalah akun siswa. Pilih tab Siswa.');}
+      applyAccount(row,row.session_token);document.getElementById('loginForm').reset();await loadOnlineData();
+    }catch(err){loginError.textContent=errorMessage(err);}
+    finally{btn.disabled=false;btn.textContent=authMode==='admin'?'Masuk sebagai admin':'Masuk sebagai siswa';}
+  });
+  document.getElementById('logoutBtn').onclick=async()=>{await invalidateSession();showLogin();setMode('student');document.getElementById('loginForm').reset();};
   document.getElementById('changePasswordBtn').onclick=()=>{document.getElementById('passwordError').textContent='';document.getElementById('passwordError').style.color='';document.getElementById('passwordForm').reset();document.getElementById('passwordModal').classList.add('open');};
   document.getElementById('closePasswordModal').onclick=()=>document.getElementById('passwordModal').classList.remove('open');
   document.getElementById('passwordModal').addEventListener('click',e=>{if(e.target.id==='passwordModal')e.currentTarget.classList.remove('open');});
   document.getElementById('passwordForm').addEventListener('submit',async e=>{
-    e.preventDefault();if(!currentUser)return;
-    const errEl=document.getElementById('passwordError'),oldP=document.getElementById('oldPassword').value,newP=document.getElementById('newPassword').value;
-    errEl.textContent='';errEl.style.color='';
-    try{
-      const {error:signError}=await sb.auth.signInWithPassword({email:currentUser.email,password:oldP});if(signError)throw new Error('Password lama salah.');
-      const {error}=await sb.auth.updateUser({password:newP});if(error)throw error;
-      errEl.style.color='#2f6b46';errEl.textContent='Password berhasil diganti.';setTimeout(()=>document.getElementById('passwordModal').classList.remove('open'),800);
-    }catch(err){errEl.textContent=errorMessage(err);}
+    e.preventDefault();if(!currentAccount)return;const err=document.getElementById('passwordError'),oldP=document.getElementById('oldPassword').value,newP=document.getElementById('newPassword').value;err.textContent='';err.style.color='';
+    try{await rpc('kk_change_password',{p_session_token:sessionToken,p_old_password:oldP,p_new_password:newP});err.style.color='#2f6b46';err.textContent='Password berhasil diganti.';setTimeout(()=>document.getElementById('passwordModal').classList.remove('open'),800);}catch(ex){err.textContent=errorMessage(ex);}
   });
 
-  // Reload periodically as a fallback even if Realtime is unavailable.
-  setInterval(()=>{if(currentUser&&!document.hidden)loadOnlineData(true);},20000);
-  document.addEventListener('visibilitychange',()=>{if(currentUser&&!document.hidden)loadOnlineData(true);});
-  window.addEventListener('online',()=>{if(currentUser)loadOnlineData();});
-  window.addEventListener('offline',()=>setSyncStatus('offline','Tidak ada internet'));
-
-  sb.auth.onAuthStateChange((event,session)=>{
-    if(event==='SIGNED_OUT')showLogin();
-    else if(event==='SIGNED_IN' && session && !currentUser)setTimeout(()=>boot(session),0);
-  });
-  setAuthMode('login');
-  sb.auth.getSession().then(({data})=>data.session?boot(data.session):showLogin()).catch(err=>{console.error(err);showLogin();setSyncStatus('offline','Gagal terhubung');});
+  async function restoreSession(){
+    const token=storedToken();if(!token){showLogin();return;}sessionToken=token;setSyncStatus('syncing','Memulihkan sesi…');
+    try{const row=firstRow(await rpc('kk_session_me',{p_session_token:token}));applyAccount(row,token);await loadOnlineData();}
+    catch(err){saveToken('');showLogin('Sesi sebelumnya berakhir. Silakan masuk kembali.');}
+  }
+  setInterval(()=>{if(currentAccount&&!document.hidden)loadOnlineData(true);},8000);
+  document.addEventListener('visibilitychange',()=>{if(currentAccount&&!document.hidden)loadOnlineData(true);});
+  window.addEventListener('online',()=>{if(currentAccount)loadOnlineData();});window.addEventListener('offline',()=>setSyncStatus('offline','Tidak ada internet'));
+  setMode('student');restoreSession();
 })();
 
 </script>

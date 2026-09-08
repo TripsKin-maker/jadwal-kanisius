@@ -1,42 +1,86 @@
-# Jadwal Kanisius — online multi-device version
+# Jadwal Kanisius — akun admin dan siswa per kelas
 
-This version stores **Tugas / PR / Ulangan** in Supabase instead of browser-only `localStorage`.
+Website: **https://tripskin-maker.github.io/jadwal-kanisius/**
 
-## What now works
+Versi ini memakai akun yang sudah dibuat otomatis. Siswa tidak perlu mendaftar atau membuat akun sendiri.
 
-- Sign up with a real email and password; existing provisioned users can also log in with their username.
-- Accounts that choose the same class share one assignment list.
-- A save on one device appears on another device automatically through Supabase Realtime (with a 20-second refresh fallback).
-- Each person's **Selesai** checkmarks remain private to their own account.
-- Shared assignments can be added, edited, or deleted by class members.
-- Row-level security prevents an account from opening another class's data.
-- A cloud status indicator shows `Online`, `Menyinkronkan`, or an error.
+## Akun yang tersedia
 
-## One-time database setup
+Terdapat 24 kelas:
 
-1. Open the Supabase project already configured in `index.html`.
-2. Go to **SQL Editor → New query**.
-3. Paste and run all of `supabase-setup.sql`.
-4. Go to **Authentication → URL Configuration**.
-5. Set **Site URL** to the final hosted address and add that same address under **Redirect URLs**. A wildcard such as `https://your-site.netlify.app/**` is convenient.
+- X-1 sampai X-8
+- XI-1 sampai XI-8
+- XII-1 sampai XII-8
 
-Email confirmation is enabled on the connected Supabase project. New users must click the confirmation link before their first login.
+Setiap kelas memiliki:
 
-## Put the site online
+- 1 akun admin kelas
+- 40 akun siswa (`siswa01` sampai `siswa40`)
 
-Deploy `index.html` as a static site. Easy options:
+Total: **24 admin + 960 siswa = 984 akun**.
 
-- **Netlify Drop:** drag this folder to `https://app.netlify.com/drop`.
-- **Cloudflare Pages:** create a Pages project and upload the folder.
-- **GitHub Pages:** commit `index.html` at the site root and enable Pages.
+### Pola akun siswa
 
-No private database secret is inside the page. The included Supabase publishable key is intended for browser use; access is protected by Auth and the SQL row-level-security policies.
+Untuk kelas X-1, siswa nomor 01:
 
-## How to test sharing
+- Username: `X1-siswa01`
+- Password: `Siswa01!X1`
 
-1. Device A: choose **Buat akun**, enter an email, choose a class, confirm the email, then log in.
-2. Device B / your friend: create a different account and choose the **same class**.
-3. Device A: add an assignment.
-4. Device B: it should appear automatically; if Realtime is delayed, the fallback refresh runs within 20 seconds.
+Untuk kelas XI-4, siswa nomor 23:
 
-Choosing a different class intentionally gives a separate list.
+- Username: `XI4-siswa23`
+- Password: `Siswa23!XI4`
+
+Untuk kelas XII-8, siswa nomor 40:
+
+- Username: `XII8-siswa40`
+- Password: `Siswa40!XII8`
+
+### Pola akun admin
+
+Untuk kelas X-1:
+
+- Username: `adminX1`
+- Password: `AdminX1!`
+
+Untuk kelas XI-4:
+
+- Username: `adminXI4`
+- Password: `AdminXI4!`
+
+Untuk kelas XII-8:
+
+- Username: `adminXII8`
+- Password: `AdminXII8!`
+
+Username tidak membedakan huruf besar/kecil, tetapi password harus ditulis persis.
+
+## Hak akses
+
+### Admin kelas
+
+- Hanya melihat kelasnya sendiri.
+- Dapat menambah, mengedit, dan menghapus Tugas/PR serta Ulangan.
+- Tidak memiliki kotak centang selesai.
+
+### Siswa
+
+- Hanya melihat kelasnya sendiri.
+- Tidak dapat menambah, mengedit, atau menghapus tugas dan ulangan.
+- Dapat mencentang selesai/belum selesai.
+- Status selesai bersifat pribadi per akun siswa dan tidak mengubah status siswa lain.
+
+## Pengaturan Supabase satu kali
+
+1. Buka proyek Supabase yang URL dan publishable key-nya sudah terpasang di `index.html`.
+2. Pilih **SQL Editor → New query**.
+3. Tempel seluruh isi `supabase-setup.sql` lalu tekan **Run**.
+4. Hasil paling bawah harus menunjukkan `24` akun admin dan `960` akun student.
+
+SQL menyimpan password sebagai hash bcrypt. Tabel akun, sesi, tugas, dan penyelesaian tidak dapat dibaca langsung menggunakan browser key; aplikasi hanya dapat memakai RPC yang memvalidasi sesi dan peran.
+
+> Karena password awal mengikuti pola yang mudah ditebak, sebaiknya admin dan siswa mengganti password setelah login jika website akan dipakai untuk data sungguhan.
+
+## Publikasi GitHub Pages
+
+Repository menggunakan `.github/workflows/pages.yml`. Setiap perubahan yang didorong ke branch `main` akan dipublikasikan otomatis ke GitHub Pages.
