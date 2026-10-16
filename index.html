@@ -2841,6 +2841,67 @@ window.addEventListener('keydown', e=>{
     items.forEach(item=>{const y=Math.round((item.transform?.[5]||0)/3)*3;(lines.get(y)||lines.set(y,[]).get(y)).push({x:item.transform?.[4]||0,text:item.str||''});});
     return [...lines.entries()].sort((a,b)=>b[0]-a[0]).map(([,parts])=>parts.sort((a,b)=>a.x-b.x).map(x=>x.text).join(' ')).join('\n');
   }
+  // Parser khusus untuk format resmi JADWAL 26-27_CC_PSB: satu halaman,
+  // 24 kolom kelas (X, XI, XII masing-masing 1-8) dan lima blok hari.
+  // Parser memakai koordinat teks PDF, sehingga kode langsung masuk ke sel
+  // kelas/hari/jam yang tepat tanpa bergantung pada urutan teks OCR.
+  function parseKanisiusGridItems(rawItems,pageWidth){
+    if(!scheduleDraft||!Array.isArray(rawItems)||rawItems.length<100)return {changed:0,classes:new Set()};
+    const items=rawItems.map(i=>({text:String(i.str||'').trim(),x:Number(i.transform?.[4]||0),y:Number(i.transform?.[5]||0),width:Number(i.width||0)})).filter(i=>i.text);
+    const numberRows=new Map();
+    items.filter(i=>/^[1-8]$/.test(i.text)&&i.x>pageWidth*.14).forEach(i=>{const y=Math.round(i.y);(numberRows.get(y)||numberRows.set(y,[]).get(y)).push(i);});
+    const header=[...numberRows.values()].sort((a,b)=>b.length-a.length)[0];
+    if(!header||header.length<20)return {changed:0,classes:new Set()};
+    const centers=header.sort((a,b)=>a.x-b.x).slice(0,24).map(i=>i.x+i.width/2);
+    if(centers.length!==24)return {changed:0,classes:new Set()};
+    const classNames=ALL_CLASSES;
+    const periodItems=items.filter(i=>/^[1-9]$/.test(i.text)&&i.x>pageWidth*.075&&i.x<pageWidth*.105);
+    const anchors=periodItems.filter(i=>i.text==='1').sort((a,b)=>b.y-a.y);
+    if(anchors.length<5)return {changed:0,classes:new Set()};
+    let changed=0;const classes=new Set();
+    const normalizeCell=text=>{
+      const codes=extractSubjectCodes(text);if(codes.length)return codes[0];
+      const upper=text.replace(/\s+/g,' ').trim().toUpperCase();
+      if(/SIMULASI\s*TKA/.test(upper))return 'SIMULASI TKA';
+      if(/MATRIKULASI/.test(upper))return 'MATRIKULASI LINTAS MINAT';
+      if(/EKSTRAKURIKULER/.test(upper))return 'EKSTRAKURIKULER';
+      if(/SENI.*PRAKARYA/.test(upper))return 'SENI DAN PRAKARYA';
+      if(/PERWALIAN/.test(upper))return 'PERWALIAN';
+      if(/\bMISA\b/.test(upper))return 'MISA';
+      return '';
+    };
+    DAYS.forEach((day,di)=>{
+      const anchor=anchors[di];if(!anchor)return;
+      const lower=di+1<anchors.length?anchors[di+1].y+1:anchor.y-pageWidth*.18;
+      const rows=periodItems.filter(i=>i.y<=anchor.y+1.5&&i.y>lower).sort((a,b)=>b.y-a.y);
+      const unique=[];rows.forEach(r=>{if(!unique.some(x=>x.text===r.text&&Math.abs(x.y-r.y)<1.5))unique.push(r);});
+      unique.forEach((row,ri)=>{
+        const period=Number(row.text);if(!Number.isInteger(period))return;
+        const nextY=ri+1<unique.length?unique[ri+1].y:row.y-9;
+        const bandTop=row.y+1.5,bandBottom=nextY+.35;
+        const timeParts=items.filter(i=>i.y<=bandTop&&i.y>bandBottom&&i.x>pageWidth*.10&&i.x<centers[0]-4).sort((a,b)=>b.y-a.y||a.x-b.x);
+        const timeRaw=timeParts.map(i=>i.text).join('').replace(/\s/g,'').replace(/:/g,'.').replace(/[–—]/g,'-');
+        const tm=timeRaw.match(/\d{1,2}\.\d{2}-\d{1,2}\.\d{2}/);const time=tm?tm[0]:'';
+        ALL_CLASSES.forEach(cls=>{
+          const list=scheduleDraft[cls][day];while(list.length<period)list.push({period:list.length+1,time:'—',subject:'—'});
+          if(time)list[period-1].time=time;
+        });
+        const cellWords=Array.from({length:24},()=>[]);
+        items.filter(i=>i.y<=bandTop&&i.y>bandBottom&&i.x>centers[0]-(centers[1]-centers[0])/2&&i.x<centers[23]+(centers[23]-centers[22])/2).forEach(i=>{
+          const cx=i.x+i.width/2;let idx=0,best=Infinity;centers.forEach((c,j)=>{const d=Math.abs(c-cx);if(d<best){best=d;idx=j;}});cellWords[idx].push(i);
+        });
+        cellWords.forEach((words,idx)=>{
+          const text=words.sort((a,b)=>b.y-a.y||a.x-b.x).map(i=>i.text).join(' '),value=normalizeCell(text);if(!value)return;
+          const cls=classNames[idx],target=scheduleDraft[cls][day][period-1];target.subject=value;changed++;classes.add(cls);
+        });
+        // Vertically merged Simulasi TKA cells have text only on the first row.
+        if(period>1){
+          ALL_CLASSES.forEach(cls=>{const list=scheduleDraft[cls][day],prev=list[period-2],cur=list[period-1];if((!cur.subject||cur.subject==='—')&&prev?.subject==='SIMULASI TKA'){cur.subject='SIMULASI TKA';changed++;classes.add(cls);}});
+        }
+      });
+    });
+    return {changed,classes};
+  }
   async function recognizeImage(source,label,baseProgress=0,span=100){
     if(!window.Tesseract)throw new Error('Pustaka OCR gagal dimuat. Periksa koneksi internet.');
     const result=await Tesseract.recognize(source,'eng',{logger:m=>{
@@ -2854,18 +2915,20 @@ window.addEventListener('keydown', e=>{
     if(!window.pdfjsLib)throw new Error('Pembaca PDF gagal dimuat. Periksa koneksi internet.');
     const bytes=await file.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:bytes}).promise;
     if(pdf.numPages>30)throw new Error('PDF maksimal 30 halaman.');
-    const chunks=[];
+    const chunks=[];let structuredChanged=0;const structuredClasses=new Set();
     for(let n=1;n<=pdf.numPages;n++){
       setOcrStatus(`Membaca halaman ${n} dari ${pdf.numPages}…`);setOcrProgress((n-1)/pdf.numPages*100);
       const page=await pdf.getPage(n),content=await page.getTextContent(),embedded=textItemsToLines(content.items||[]).trim();
-      if(embedded.replace(/\s/g,'').length>80){chunks.push(`\n--- HALAMAN ${n} ---\n${embedded}`);}
-      else{
+      if(embedded.replace(/\s/g,'').length>80){
+        chunks.push(`\n--- HALAMAN ${n} ---\n${embedded}`);
+        const parsed=parseKanisiusGridItems(content.items||[],Number(page.view?.[2]||595));structuredChanged+=parsed.changed;parsed.classes.forEach(c=>structuredClasses.add(c));
+      }else{
         const viewport=page.getViewport({scale:2}),canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
         await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
         chunks.push(`\n--- HALAMAN ${n} OCR ---\n`+await recognizeImage(canvas,`Halaman ${n}`,((n-1)/pdf.numPages)*100,100/pdf.numPages));
       }
     }
-    return chunks.join('\n');
+    return {text:chunks.join('\n'),structuredChanged,structuredClasses};
   }
   async function processScheduleFile(){
     if(currentAccount?.role!=='master_admin')return;
@@ -2873,12 +2936,18 @@ window.addEventListener('keydown', e=>{
     if(file.size>25*1024*1024){setOcrStatus('Ukuran file maksimal 25 MB.','error');return;}
     const btn=document.getElementById('processScheduleBtn');btn.disabled=true;document.getElementById('publishScheduleBtn').disabled=true;setOcrProgress(1);setOcrStatus('Menyiapkan pembacaan file…');
     try{
-      latestScheduleFile=file;let text='';
-      if(file.type==='application/pdf'||/\.pdf$/i.test(file.name))text=await extractPdfText(file);
-      else if(/^image\//.test(file.type))text=await recognizeImage(file,'Foto jadwal',0,100);
-      else throw new Error('Format file harus PDF, PNG, JPG, atau WEBP.');
-      latestOcrText=text;document.getElementById('ocrRawText').value=text;scheduleDraft=buildScheduleDraft();
-      const result=parseOcrIntoDraft(text);renderScheduleEditor();setOcrProgress(100);
+      latestScheduleFile=file;scheduleDraft=buildScheduleDraft();let text='',result={changed:0,classes:new Set()};
+      if(file.type==='application/pdf'||/\.pdf$/i.test(file.name)){
+        const extracted=await extractPdfText(file);text=extracted.text;
+        result={changed:extracted.structuredChanged,classes:extracted.structuredClasses};
+        // Use the generic text parser only when the coordinate parser did not
+        // recognize the official 24-column Kanisius layout.
+        if(result.changed<100)result=parseOcrIntoDraft(text);
+      }else if(/^image\//.test(file.type)){
+        text=await recognizeImage(file,'Foto jadwal',0,100);result=parseOcrIntoDraft(text);
+      }else throw new Error('Format file harus PDF, PNG, JPG, atau WEBP.');
+      latestOcrText=text;document.getElementById('ocrRawText').value=text;
+      renderScheduleEditor();setOcrProgress(100);
       document.getElementById('scheduleUploadCount').textContent=`${result.changed} sel terbaca`;
       document.getElementById('publishScheduleBtn').disabled=false;
       setOcrStatus(result.changed?`OCR selesai: ${result.changed} sel dari ${result.classes.size} kelas dikenali. Periksa tabel sebelum publikasi.`:'OCR selesai, tetapi struktur tabel belum dikenali. Gunakan teks OCR dan editor untuk memperbaiki secara manual.',result.changed?'success':'error');

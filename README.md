@@ -91,9 +91,11 @@ Jalankan `supabase-schedule-upload-update.sql` sekali setelah setup utama. Pemba
 Admin Pusat mendapatkan halaman untuk:
 
 1. Mengunggah satu PDF atau foto jadwal seluruh sekolah.
-2. Membaca PDF bertipe teks secara langsung atau memakai OCR untuk hasil pindai/foto.
-3. Meninjau dan mengedit tabel semua kelas X–XII sebelum publikasi.
-4. Mempublikasikan jadwal ke semua akun siswa dan admin kelas.
+2. Mengenali otomatis tata letak resmi seperti `JADWAL 26-27_CC_PSB.pdf`: lima blok hari dan 24 kolom kelas X–XII.
+3. Menempatkan kode mata pelajaran langsung ke sel kelas, hari, jam, dan waktu yang sesuai berdasarkan koordinat tabel PDF.
+4. Memakai OCR sebagai cadangan untuk PDF hasil pindai/foto.
+5. Meninjau dan mengedit tabel semua kelas X–XII sebelum publikasi.
+6. Mempublikasikan jadwal ke semua akun siswa dan admin kelas.
 
 File asli diproses di browser; database menyimpan teks OCR, versi, dan sel jadwal yang sudah dikonfirmasi. OCR dapat salah membaca kode, sehingga pratinjau wajib diperiksa sebelum menekan tombol publikasi.
 
