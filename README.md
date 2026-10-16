@@ -81,6 +81,22 @@ SQL menyimpan password sebagai hash bcrypt. Tabel akun, sesi, tugas, dan penyele
 
 > Karena password awal mengikuti pola yang mudah ditebak, sebaiknya admin dan siswa mengganti password setelah login jika website akan dipakai untuk data sungguhan.
 
+## Unggah jadwal PDF/foto oleh Admin Pusat
+
+Jalankan `supabase-schedule-upload-update.sql` sekali setelah setup utama. Pembaruan ini membuat akun:
+
+- Username: `adminPusat`
+- Password awal: `AdminPusat!`
+
+Admin Pusat mendapatkan halaman untuk:
+
+1. Mengunggah satu PDF atau foto jadwal seluruh sekolah.
+2. Membaca PDF bertipe teks secara langsung atau memakai OCR untuk hasil pindai/foto.
+3. Meninjau dan mengedit tabel semua kelas X–XII sebelum publikasi.
+4. Mempublikasikan jadwal ke semua akun siswa dan admin kelas.
+
+File asli diproses di browser; database menyimpan teks OCR, versi, dan sel jadwal yang sudah dikonfirmasi. OCR dapat salah membaca kode, sehingga pratinjau wajib diperiksa sebelum menekan tombol publikasi.
+
 ## Publikasi GitHub Pages
 
 Repository menggunakan `.github/workflows/pages.yml`. Setiap perubahan yang didorong ke branch `main` akan dipublikasikan otomatis ke GitHub Pages.

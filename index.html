@@ -1108,7 +1108,30 @@ body.authenticated .student-view #legendBtn{display:flex}
   .admin-view .task-filter[data-filter="pending"]{display:none}
   .student-view .task-form,.student-view .task-edit-btn,.student-view .task-del,.student-view .task-bulk{display:none!important}
   .account-chip{max-width:250px}
-  @media(max-width:600px){.account-chip{max-width:38vw}.sync-pill{order:10}}
+  .auth-tabs{grid-template-columns:repeat(3,1fr)}
+  #scheduleUploadCard{display:none}
+  body.master-view #scheduleUploadCard{display:block}
+  body.master-view #taskCard{display:none!important}
+  body.authenticated.master-view .picker{display:block!important}
+  .upload-intro{color:#6b6455;font-size:13px;line-height:1.6;margin:0 0 16px}
+  .upload-zone{border:1.5px dashed rgba(198,161,91,.65);border-radius:14px;padding:18px;background:rgba(198,161,91,.06);display:grid;gap:12px}
+  .upload-file{width:100%;font:500 12px 'IBM Plex Mono',monospace;color:var(--ink)}
+  .upload-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .upload-primary,.upload-secondary{border:1px solid var(--navy);border-radius:9px;padding:9px 14px;cursor:pointer;font:700 11px 'IBM Plex Mono',monospace}
+  .upload-primary{background:var(--navy);color:var(--gold-light)}
+  .upload-secondary{background:#fff;color:var(--navy);border-color:var(--line)}
+  .upload-primary:disabled,.upload-secondary:disabled{opacity:.5;cursor:not-allowed}
+  .ocr-progress{height:8px;background:#e6e0d2;border-radius:999px;overflow:hidden;display:none}.ocr-progress.show{display:block}.ocr-progress>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--maroon));transition:width .25s ease}
+  .ocr-status{font:600 10.5px 'IBM Plex Mono',monospace;color:#7c725e;line-height:1.5}
+  .ocr-status.error{color:var(--maroon)}.ocr-status.success{color:#2f6b46}
+  .ocr-raw-wrap{margin-top:12px}.ocr-raw{width:100%;min-height:130px;resize:vertical;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff;font:500 10.5px 'IBM Plex Mono',monospace;color:var(--ink)}
+  .schedule-review{margin-top:18px;border-top:1px dashed var(--line);padding-top:16px}
+  .review-toolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:12px}.review-toolbar .task-field{min-width:130px}.review-toolbar select{min-width:130px}
+  .schedule-editor{width:100%;border-collapse:collapse}.schedule-editor th{font-size:10px}.schedule-editor td{padding:7px 6px}.schedule-editor input{width:100%;min-width:90px;border:1px solid var(--line);border-radius:7px;padding:8px;background:#fff;font:600 11px 'IBM Plex Mono',monospace;color:var(--ink)}
+  .schedule-editor .period-cell{width:58px;text-align:center;font:700 12px 'IBM Plex Mono',monospace;color:#867d68}
+  .publish-row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}.publish-note{font-size:11px;color:#867d68;line-height:1.5;max-width:610px}
+  .schedule-version{margin-top:9px;padding:9px 11px;border-radius:9px;background:rgba(47,107,70,.07);color:#2f6b46;font:600 10.5px 'IBM Plex Mono',monospace}
+  @media(max-width:600px){.account-chip{max-width:38vw}.sync-pill{order:10}.auth-tab{font-size:10px;padding:9px 4px}.schedule-editor input{min-width:75px}.review-toolbar{display:grid;grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -1122,6 +1145,7 @@ body.authenticated .student-view #legendBtn{display:flex}
     <div class="auth-tabs">
       <button class="auth-tab active" id="studentTab" type="button">Siswa</button>
       <button class="auth-tab" id="adminTab" type="button">Admin Kelas</button>
+      <button class="auth-tab" id="masterTab" type="button">Admin Pusat</button>
     </div>
     <form id="loginForm">
       <div class="auth-field"><label for="loginUsername">Username</label><input id="loginUsername" type="text" autocomplete="username" placeholder="Contoh: X1-siswa01" required></div>
@@ -1291,6 +1315,34 @@ body.authenticated .student-view #legendBtn{display:flex}
     <div class="task-hint">Tugas/PR dan ulangan dipisahkan otomatis. Maksimal 10 item ditampilkan per bagian; gunakan tombol di bawah untuk melihat semuanya. Tugas yang lewat tenggat tetap bisa dicentang. Hanya admin kelas yang dapat menambah, mengedit, dan menghapus. Tanda selesai tersimpan pribadi untuk setiap siswa.</div>
   </div>
 
+  <div class="card task-card" id="scheduleUploadCard">
+    <div class="task-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="task-title-icon">⇧</span>
+        <div><div class="task-eyebrow">Khusus Admin Pusat</div><h2 class="task-title">Unggah &amp; Publikasikan Jadwal</h2></div>
+      </div>
+      <div class="task-count" id="scheduleUploadCount">Belum diproses</div>
+    </div>
+    <p class="upload-intro">Unggah satu PDF atau foto yang berisi jadwal seluruh kelas. Website akan membaca teks dengan OCR, mengisi draf, lalu menampilkan tabel yang dapat diperiksa dan diperbaiki sebelum dipublikasikan.</p>
+    <div class="upload-zone">
+      <input class="upload-file" id="scheduleFileInput" type="file" accept="application/pdf,image/png,image/jpeg,image/webp">
+      <div class="upload-actions"><button class="upload-primary" id="processScheduleBtn" type="button">Baca file &amp; buat pratinjau</button><span class="ocr-status" id="ocrStatus">PDF maksimal 30 halaman; foto maksimal 25 MB.</span></div>
+      <div class="ocr-progress" id="ocrProgress"><span id="ocrProgressBar"></span></div>
+    </div>
+    <details class="ocr-raw-wrap"><summary class="task-hint" style="cursor:pointer;padding:0">Lihat atau perbaiki teks hasil OCR</summary><textarea class="ocr-raw" id="ocrRawText" placeholder="Teks hasil pembacaan PDF/foto akan muncul di sini."></textarea><div class="upload-actions" style="margin-top:8px"><button class="upload-secondary" id="reparseOcrBtn" type="button">Baca ulang teks yang diperbaiki</button></div></details>
+    <div class="schedule-review" id="scheduleReview">
+      <div class="review-toolbar">
+        <div class="task-field"><span class="field-label">Kelas pratinjau</span><select class="task-input" id="reviewClass"></select></div>
+        <div class="task-field"><span class="field-label">Hari</span><select class="task-input" id="reviewDay"></select></div>
+        <button class="upload-secondary" id="previousReviewClass" type="button">← Kelas sebelumnya</button>
+        <button class="upload-secondary" id="nextReviewClass" type="button">Kelas berikutnya →</button>
+      </div>
+      <table class="schedule-editor"><thead><tr><th>Jam ke</th><th>Waktu</th><th>Kode mata pelajaran</th></tr></thead><tbody id="scheduleEditorBody"></tbody></table>
+      <div class="publish-row"><div class="publish-note">Periksa hasil OCR sebelum menerbitkan. Sel yang tidak terbaca tetap memakai jadwal yang sedang tampil dan dapat diedit manual.</div><button class="upload-primary" id="publishScheduleBtn" type="button" disabled>Publikasikan untuk semua akun</button></div>
+      <div class="schedule-version" id="scheduleVersionInfo">Belum ada jadwal hasil unggahan yang aktif.</div>
+    </div>
+  </div>
+
   <div class="info-toggle-grid">
     <button class="info-toggle" id="searchBtn" type="button">
       <span class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><line x1="15" y1="15" x2="20" y2="20"/></svg></span>
@@ -1386,6 +1438,8 @@ body.authenticated .student-view #legendBtn{display:flex}
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 // ===== SUPABASE ONLINE STORAGE =====
 const SUPABASE_URL = "https://zvhlgfnfwzsefwjwfznt.supabase.co";
@@ -2554,6 +2608,13 @@ window.addEventListener('keydown', e=>{
   let sessionToken = '';
   let currentAccount = null;
   let reloadTimer = null;
+  const ALL_CLASSES=[];
+  ['X','XI','XII'].forEach(t=>{for(let n=1;n<=8;n++)ALL_CLASSES.push(t+'-'+n);});
+  const BASE_SCHEDULE=JSON.parse(JSON.stringify(SCHEDULE));
+  const BASE_TIMES=JSON.parse(JSON.stringify(TIMES));
+  let scheduleDraft=null;
+  let latestScheduleFile=null;
+  let latestOcrText='';
 
   const authScreen = document.getElementById('authScreen');
   const accountBar = document.getElementById('accountBar');
@@ -2594,20 +2655,23 @@ window.addEventListener('keydown', e=>{
 
   function setMode(mode){
     authMode=mode;
-    const admin=mode==='admin';
-    document.getElementById('studentTab').classList.toggle('active',!admin);
+    const admin=mode==='admin',master=mode==='master_admin';
+    document.getElementById('studentTab').classList.toggle('active',mode==='student');
     document.getElementById('adminTab').classList.toggle('active',admin);
-    document.getElementById('loginUsername').placeholder=admin?'Contoh: adminX1':'Contoh: X1-siswa01';
-    document.getElementById('authSubmitBtn').textContent=admin?'Masuk sebagai admin':'Masuk sebagai siswa';
-    document.getElementById('authHelp').innerHTML=admin
-      ? '<b>Contoh admin X-1:</b> adminX1 · AdminX1!<br>Setiap kelas memiliki satu akun admin.'
-      : '<b>Contoh siswa X-1:</b> X1-siswa01 · Siswa01!X1<br>Tersedia siswa01 sampai siswa40 untuk setiap kelas.';
+    document.getElementById('masterTab').classList.toggle('active',master);
+    document.getElementById('loginUsername').placeholder=master?'adminPusat':admin?'Contoh: adminX1':'Contoh: X1-siswa01';
+    document.getElementById('authSubmitBtn').textContent=master?'Masuk sebagai admin pusat':admin?'Masuk sebagai admin':'Masuk sebagai siswa';
+    document.getElementById('authHelp').innerHTML=master
+      ? '<b>Admin pusat:</b> adminPusat · AdminPusat!<br>Akun ini dapat mengunggah jadwal seluruh sekolah.'
+      : admin
+        ? '<b>Contoh admin X-1:</b> adminX1 · AdminX1!<br>Setiap kelas memiliki satu akun admin.'
+        : '<b>Contoh siswa X-1:</b> X1-siswa01 · Siswa01!X1<br>Tersedia siswa01 sampai siswa40 untuk setiap kelas.';
     loginError.textContent='';
     document.getElementById('loginPassword').value='';
   }
   function showLogin(message=''){
     currentAccount=null;sessionToken='';tasks=[];editingTaskId=null;
-    document.body.classList.remove('authenticated','admin-view','student-view');
+    document.body.classList.remove('authenticated','admin-view','student-view','master-view');
     authScreen.classList.remove('hidden');accountBar.classList.remove('visible');
     setSyncStatus('', 'Belum masuk');
     if(message)loginError.textContent=message;
@@ -2633,7 +2697,9 @@ window.addEventListener('keydown', e=>{
     document.body.classList.add('authenticated');
     document.body.classList.toggle('admin-view',currentAccount.role==='admin');
     document.body.classList.toggle('student-view',currentAccount.role==='student');
-    document.getElementById('accountChip').textContent=(currentAccount.role==='admin'?'ADMIN · ':'SISWA · ')+currentAccount.username+' · Kelas '+currentAccount.className;
+    document.body.classList.toggle('master-view',currentAccount.role==='master_admin');
+    const roleLabel=currentAccount.role==='master_admin'?'ADMIN PUSAT · ':currentAccount.role==='admin'?'ADMIN · ':'SISWA · ';
+    document.getElementById('accountChip').textContent=roleLabel+currentAccount.username+(currentAccount.role==='master_admin'?'':' · Kelas '+currentAccount.className);
     taskFilter='all';tasksExpanded=false;editingTaskId=null;
     document.querySelectorAll('.task-filter').forEach(b=>b.classList.toggle('active',b.dataset.filter==='all'));
     render();
@@ -2649,6 +2715,7 @@ window.addEventListener('keydown', e=>{
   }
   async function loadOnlineData(silent=false){
     if(!currentAccount||!sessionToken)return;
+    if(currentAccount.role==='master_admin'){tasks=[];renderTasks();return;}
     if(silent&&editingTaskId)return;
     if(!silent)setSyncStatus('syncing','Menyinkronkan…');
     try{
@@ -2661,6 +2728,220 @@ window.addEventListener('keydown', e=>{
     }
   }
   function scheduleReload(){clearTimeout(reloadTimer);reloadTimer=setTimeout(()=>loadOnlineData(true),250);}
+
+  // ---------- Shared schedule uploaded by the master administrator ----------
+  function resetScheduleToBase(){
+    DAYS.forEach(day=>{
+      TIMES[day]=[...(BASE_TIMES[day]||[])];
+      ALL_CLASSES.forEach(cls=>{
+        const key=cls.replace('-','');
+        if(!SCHEDULE[day])SCHEDULE[day]={};
+        SCHEDULE[day][key]=[...((BASE_SCHEDULE[day]&&BASE_SCHEDULE[day][key])||[])];
+      });
+    });
+  }
+  function applyPublishedSchedule(rows){
+    if(!Array.isArray(rows)||!rows.length)return;
+    resetScheduleToBase();
+    const timesByDay={};
+    rows.forEach(r=>{
+      if(!DAYS.includes(r.day_name)||!ALL_CLASSES.includes(r.class_name))return;
+      const period=Number(r.period);if(!Number.isInteger(period)||period<1||period>12)return;
+      const key=r.class_name.replace('-','');
+      if(!SCHEDULE[r.day_name][key])SCHEDULE[r.day_name][key]=[];
+      SCHEDULE[r.day_name][key][period-1]=r.subject_code||'—';
+      (timesByDay[r.day_name]||(timesByDay[r.day_name]={}))[period]=r.time_range;
+    });
+    DAYS.forEach(day=>{
+      const map=timesByDay[day];if(!map)return;
+      const max=Math.max(...Object.keys(map).map(Number));
+      TIMES[day]=Array.from({length:max},(_,i)=>map[i+1]||(BASE_TIMES[day]||[])[i]||'—');
+    });
+  }
+  async function loadOnlineSchedule(silent=false){
+    if(!currentAccount||!sessionToken)return;
+    try{
+      const rows=await rpc('kk_list_schedule',{p_session_token:sessionToken});
+      if(Array.isArray(rows)&&rows.length){
+        applyPublishedSchedule(rows);
+        const first=rows[0];
+        const date=first.published_at?new Date(first.published_at).toLocaleString('id-ID'):'—';
+        const info=document.getElementById('scheduleVersionInfo');
+        if(info)info.textContent=`Aktif: ${first.file_name||'jadwal'} · ${rows.length} sel · ${date}`;
+      }else{
+        resetScheduleToBase();
+        const info=document.getElementById('scheduleVersionInfo');if(info)info.textContent='Belum ada jadwal hasil unggahan yang aktif; website memakai jadwal bawaan.';
+      }
+      render();
+      if(currentAccount.role==='master_admin'){
+        scheduleDraft=buildScheduleDraft();renderScheduleEditor();
+      }
+    }catch(err){
+      const raw=String(err?.message||err);
+      if(/kk_list_schedule|schema cache|does not exist|could not find/i.test(raw)){
+        const info=document.getElementById('scheduleVersionInfo');
+        if(info)info.textContent='Fitur database jadwal belum dipasang. Jalankan supabase-schedule-upload-update.sql.';
+        if(!silent&&currentAccount.role==='master_admin')showToast('Jalankan SQL pembaruan fitur jadwal terlebih dahulu.');
+        return;
+      }
+      if(!silent)showToast(errorMessage(err));
+    }
+  }
+  function buildScheduleDraft(){
+    const draft={};
+    ALL_CLASSES.forEach(cls=>{
+      draft[cls]={};const key=cls.replace('-','');
+      DAYS.forEach(day=>{
+        const times=TIMES[day]||[],subjects=(SCHEDULE[day]&&SCHEDULE[day][key])||[];
+        draft[cls][day]=times.map((time,i)=>({period:i+1,time,subject:subjects[i]||'—'}));
+      });
+    });
+    return draft;
+  }
+  function renderScheduleEditor(){
+    if(!scheduleDraft)return;
+    const cls=document.getElementById('reviewClass').value||'X-1',day=document.getElementById('reviewDay').value||'Senin';
+    const body=document.getElementById('scheduleEditorBody');if(!body)return;
+    const rows=(scheduleDraft[cls]&&scheduleDraft[cls][day])||[];body.innerHTML='';
+    rows.forEach((row,i)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td class="period-cell">${row.period}</td><td><input data-kind="time" data-index="${i}" aria-label="Waktu jam ${row.period}"></td><td><input data-kind="subject" data-index="${i}" aria-label="Kode mapel jam ${row.period}"></td>`;
+      tr.querySelector('[data-kind="time"]').value=row.time||'';tr.querySelector('[data-kind="subject"]').value=row.subject||'';
+      tr.querySelectorAll('input').forEach(input=>input.addEventListener('input',()=>{
+        const target=scheduleDraft[cls][day][Number(input.dataset.index)];target[input.dataset.kind]=input.value.trim();
+      }));body.appendChild(tr);
+    });
+  }
+  function initializeScheduleUploader(){
+    const cls=document.getElementById('reviewClass'),day=document.getElementById('reviewDay');if(!cls||!day)return;
+    cls.innerHTML=ALL_CLASSES.map(x=>`<option value="${x}">${x}</option>`).join('');
+    day.innerHTML=DAYS.map(x=>`<option value="${x}">${x}</option>`).join('');
+    cls.onchange=renderScheduleEditor;day.onchange=renderScheduleEditor;
+    document.getElementById('previousReviewClass').onclick=()=>{const i=ALL_CLASSES.indexOf(cls.value);cls.value=ALL_CLASSES[(i-1+ALL_CLASSES.length)%ALL_CLASSES.length];renderScheduleEditor();};
+    document.getElementById('nextReviewClass').onclick=()=>{const i=ALL_CLASSES.indexOf(cls.value);cls.value=ALL_CLASSES[(i+1)%ALL_CLASSES.length];renderScheduleEditor();};
+    document.getElementById('processScheduleBtn').onclick=processScheduleFile;
+    document.getElementById('reparseOcrBtn').onclick=()=>{
+      scheduleDraft=buildScheduleDraft();const text=document.getElementById('ocrRawText').value;const result=parseOcrIntoDraft(text);renderScheduleEditor();
+      document.getElementById('scheduleUploadCount').textContent=`${result.changed} sel terbaca`;
+      document.getElementById('publishScheduleBtn').disabled=false;
+      setOcrStatus(result.changed?`Teks dibaca ulang: ${result.changed} sel dikenali. Periksa sebelum publikasi.`:'Belum ada sel yang dikenali; isi tabel pratinjau secara manual.',result.changed?'success':'error');
+    };
+    document.getElementById('publishScheduleBtn').onclick=publishScheduleDraft;
+    scheduleDraft=buildScheduleDraft();renderScheduleEditor();
+    if(window.pdfjsLib)window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+  function setOcrStatus(text,type=''){
+    const el=document.getElementById('ocrStatus');el.textContent=text;el.classList.remove('error','success');if(type)el.classList.add(type);
+  }
+  function setOcrProgress(value){
+    const wrap=document.getElementById('ocrProgress'),bar=document.getElementById('ocrProgressBar');wrap.classList.add('show');bar.style.width=Math.max(0,Math.min(100,value))+'%';
+  }
+  function textItemsToLines(items){
+    const lines=new Map();
+    items.forEach(item=>{const y=Math.round((item.transform?.[5]||0)/3)*3;(lines.get(y)||lines.set(y,[]).get(y)).push({x:item.transform?.[4]||0,text:item.str||''});});
+    return [...lines.entries()].sort((a,b)=>b[0]-a[0]).map(([,parts])=>parts.sort((a,b)=>a.x-b.x).map(x=>x.text).join(' ')).join('\n');
+  }
+  async function recognizeImage(source,label,baseProgress=0,span=100){
+    if(!window.Tesseract)throw new Error('Pustaka OCR gagal dimuat. Periksa koneksi internet.');
+    const result=await Tesseract.recognize(source,'eng',{logger:m=>{
+      if(m.status==='recognizing text'){
+        const pct=baseProgress+(m.progress||0)*span;setOcrProgress(pct);setOcrStatus(`${label}: membaca teks ${Math.round((m.progress||0)*100)}%…`);
+      }
+    }});
+    return result.data.text||'';
+  }
+  async function extractPdfText(file){
+    if(!window.pdfjsLib)throw new Error('Pembaca PDF gagal dimuat. Periksa koneksi internet.');
+    const bytes=await file.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:bytes}).promise;
+    if(pdf.numPages>30)throw new Error('PDF maksimal 30 halaman.');
+    const chunks=[];
+    for(let n=1;n<=pdf.numPages;n++){
+      setOcrStatus(`Membaca halaman ${n} dari ${pdf.numPages}…`);setOcrProgress((n-1)/pdf.numPages*100);
+      const page=await pdf.getPage(n),content=await page.getTextContent(),embedded=textItemsToLines(content.items||[]).trim();
+      if(embedded.replace(/\s/g,'').length>80){chunks.push(`\n--- HALAMAN ${n} ---\n${embedded}`);}
+      else{
+        const viewport=page.getViewport({scale:2}),canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+        await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+        chunks.push(`\n--- HALAMAN ${n} OCR ---\n`+await recognizeImage(canvas,`Halaman ${n}`,((n-1)/pdf.numPages)*100,100/pdf.numPages));
+      }
+    }
+    return chunks.join('\n');
+  }
+  async function processScheduleFile(){
+    if(currentAccount?.role!=='master_admin')return;
+    const input=document.getElementById('scheduleFileInput'),file=input.files?.[0];if(!file){setOcrStatus('Pilih PDF atau foto terlebih dahulu.','error');return;}
+    if(file.size>25*1024*1024){setOcrStatus('Ukuran file maksimal 25 MB.','error');return;}
+    const btn=document.getElementById('processScheduleBtn');btn.disabled=true;document.getElementById('publishScheduleBtn').disabled=true;setOcrProgress(1);setOcrStatus('Menyiapkan pembacaan file…');
+    try{
+      latestScheduleFile=file;let text='';
+      if(file.type==='application/pdf'||/\.pdf$/i.test(file.name))text=await extractPdfText(file);
+      else if(/^image\//.test(file.type))text=await recognizeImage(file,'Foto jadwal',0,100);
+      else throw new Error('Format file harus PDF, PNG, JPG, atau WEBP.');
+      latestOcrText=text;document.getElementById('ocrRawText').value=text;scheduleDraft=buildScheduleDraft();
+      const result=parseOcrIntoDraft(text);renderScheduleEditor();setOcrProgress(100);
+      document.getElementById('scheduleUploadCount').textContent=`${result.changed} sel terbaca`;
+      document.getElementById('publishScheduleBtn').disabled=false;
+      setOcrStatus(result.changed?`OCR selesai: ${result.changed} sel dari ${result.classes.size} kelas dikenali. Periksa tabel sebelum publikasi.`:'OCR selesai, tetapi struktur tabel belum dikenali. Gunakan teks OCR dan editor untuk memperbaiki secara manual.',result.changed?'success':'error');
+    }catch(err){console.error(err);setOcrStatus(errorMessage(err),'error');}
+    finally{btn.disabled=false;}
+  }
+  function normalizeClass(raw){
+    const m=String(raw).toUpperCase().match(/(XII|XI|X)\s*[-–]?\s*([1-8])/);return m?m[1]+'-'+m[2]:null;
+  }
+  function extractSubjectCodes(line){
+    const re=/\b(MAT|IND|ING|BIO|FIS|KIM|EKO|SOS|GEO|SEJ|AGM|PKN|ORK|OR|MAN|IT|BK|NAT|RTKA|PTKA)\s*\d*(?:\s*,\s*\d+)*(?:\s*_L)?\b/gi;
+    const out=[];let m;
+    while((m=re.exec(line))){
+      let raw=m[0].replace(/\s+/g,'').replace(/,+/g,',');
+      const letters=(raw.match(/^[A-Za-z]+/)||[''])[0],suffix=raw.slice(letters.length).toUpperCase();
+      const prefix=letters&&letters===letters.toLowerCase()?'ing':letters.toUpperCase();
+      out.push((prefix==='OR'?'ORK':prefix)+suffix);
+    }
+    return out;
+  }
+  function extractTimeRanges(line){
+    return (line.match(/\b\d{1,2}[.:]\d{2}\s*[-–—]\s*\d{1,2}[.:]\d{2}\b/g)||[]).map(x=>x.replace(/\s/g,'').replace(/:/g,'.').replace(/[–—]/g,'-'));
+  }
+  function parseOcrIntoDraft(text){
+    if(!scheduleDraft)scheduleDraft=buildScheduleDraft();
+    const lines=String(text||'').replace(/\r/g,'').split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+    let currentDay=null,currentClass=null,changed=0;const classes=new Set(),pointers={};
+    const setCells=(cls,day,codes,times=[])=>{
+      if(!cls||!day||!scheduleDraft[cls]?.[day]||!codes.length)return;
+      const rows=scheduleDraft[cls][day],key=cls+'|'+day;let start=pointers[key]||0;
+      if(codes.length>=rows.length-1)start=0;
+      codes.slice(0,rows.length-start).forEach((code,i)=>{const row=rows[start+i];if(!row)return;row.subject=code||row.subject;if(times[i])row.time=times[i];changed++;});
+      pointers[key]=Math.min(rows.length,start+codes.length);classes.add(cls);
+    };
+    lines.forEach(line=>{
+      const dayHits=DAYS.filter(d=>new RegExp('\\b'+d+'\\b','i').test(line));if(dayHits.length===1)currentDay=dayHits[0];
+      const classMatch=line.match(/\b(XII|XI|X)\s*[-–]?\s*([1-8])\b/i);if(classMatch)currentClass=normalizeClass(classMatch[0]);
+      const codes=extractSubjectCodes(line),times=extractTimeRanges(line);if(!codes.length)return;
+      if(currentClass&&!currentDay&&codes.length>=30){
+        let pos=0;DAYS.forEach(day=>{const count=scheduleDraft[currentClass][day].length;setCells(currentClass,day,codes.slice(pos,pos+count),times.slice(pos,pos+count));pos+=count;});return;
+      }
+      if(currentClass&&currentDay)setCells(currentClass,currentDay,codes,times);
+    });
+    return {changed,classes};
+  }
+  function draftEntries(){
+    const entries=[];
+    ALL_CLASSES.forEach(cls=>DAYS.forEach(day=>(scheduleDraft?.[cls]?.[day]||[]).forEach(row=>{
+      entries.push({class_name:cls,day_name:day,period:row.period,time_range:(row.time||'—').trim()||'—',subject_code:(row.subject||'—').trim()||'—'});
+    })));
+    return entries;
+  }
+  async function publishScheduleDraft(){
+    if(currentAccount?.role!=='master_admin'||!scheduleDraft)return;
+    const entries=draftEntries();if(!entries.length)return;
+    if(!confirm(`Publikasikan ${entries.length} sel jadwal untuk semua siswa dan admin kelas?`))return;
+    const btn=document.getElementById('publishScheduleBtn');btn.disabled=true;btn.textContent='Mempublikasikan…';setSyncStatus('syncing','Menyimpan jadwal…');
+    try{
+      await rpc('kk_publish_schedule',{p_session_token:sessionToken,p_file_name:latestScheduleFile?.name||'jadwal-diedit-manual',p_file_type:latestScheduleFile?.type||'manual',p_ocr_text:document.getElementById('ocrRawText').value||latestOcrText||'',p_entries:entries});
+      await loadOnlineSchedule();setOcrStatus('Jadwal berhasil dipublikasikan untuk semua akun.','success');showToast('Jadwal seluruh sekolah berhasil diperbarui.');setSyncStatus('online','Online · tersimpan');
+    }catch(err){console.error(err);setOcrStatus(errorMessage(err),'error');setSyncStatus('offline','Gagal menyimpan jadwal');}
+    finally{btn.disabled=false;btn.textContent='Publikasikan untuk semua akun';}
+  }
 
   function isoLocalDate(d){
     const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;
@@ -2783,16 +3064,23 @@ window.addEventListener('keydown', e=>{
   document.getElementById('completeAllBtn').addEventListener('click',async()=>{if(currentAccount?.role!=='student')return;setSyncStatus('syncing','Menyimpan…');try{await rpc('kk_complete_all',{p_session_token:sessionToken});await loadOnlineData(true);showToast('Semua ditandai selesai untuk akun Anda.');}catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menyimpan');}});
   document.getElementById('clearDoneBtn').addEventListener('click',async()=>{if(currentAccount?.role!=='student')return;setSyncStatus('syncing','Menyimpan…');try{await rpc('kk_reset_completions',{p_session_token:sessionToken});await loadOnlineData(true);showToast('Tanda selesai akun Anda direset.');}catch(err){showToast(errorMessage(err));setSyncStatus('offline','Gagal menyimpan');}});
 
-  document.getElementById('studentTab').onclick=()=>setMode('student');document.getElementById('adminTab').onclick=()=>setMode('admin');
+  document.getElementById('studentTab').onclick=()=>setMode('student');
+  document.getElementById('adminTab').onclick=()=>setMode('admin');
+  document.getElementById('masterTab').onclick=()=>setMode('master_admin');
   document.getElementById('loginForm').addEventListener('submit',async e=>{
     e.preventDefault();loginError.textContent='';const username=document.getElementById('loginUsername').value.trim(),password=document.getElementById('loginPassword').value,btn=document.getElementById('authSubmitBtn');btn.disabled=true;btn.textContent='Memeriksa…';
     try{
       const row=firstRow(await rpc('kk_login',{p_username:username,p_password:password}));
       if(!row?.session_token)throw new Error('Username atau password salah.');
-      if(row.role!==authMode){try{await rpc('kk_logout',{p_session_token:row.session_token});}catch(e){}throw new Error(row.role==='admin'?'Akun ini adalah akun admin. Pilih tab Admin Kelas.':'Akun ini adalah akun siswa. Pilih tab Siswa.');}
-      applyAccount(row,row.session_token);document.getElementById('loginForm').reset();await loadOnlineData();
+      if(row.role!==authMode){
+        try{await rpc('kk_logout',{p_session_token:row.session_token});}catch(e){}
+        const correct=row.role==='master_admin'?'Admin Pusat':row.role==='admin'?'Admin Kelas':'Siswa';
+        throw new Error(`Akun ini harus masuk melalui tab ${correct}.`);
+      }
+      applyAccount(row,row.session_token);document.getElementById('loginForm').reset();
+      await loadOnlineSchedule();await loadOnlineData();
     }catch(err){loginError.textContent=errorMessage(err);}
-    finally{btn.disabled=false;btn.textContent=authMode==='admin'?'Masuk sebagai admin':'Masuk sebagai siswa';}
+    finally{btn.disabled=false;btn.textContent=authMode==='master_admin'?'Masuk sebagai admin pusat':authMode==='admin'?'Masuk sebagai admin':'Masuk sebagai siswa';}
   });
   document.getElementById('logoutBtn').onclick=async()=>{await invalidateSession();showLogin();setMode('student');document.getElementById('loginForm').reset();};
   document.getElementById('changePasswordBtn').onclick=()=>{document.getElementById('passwordError').textContent='';document.getElementById('passwordError').style.color='';document.getElementById('passwordForm').reset();document.getElementById('passwordModal').classList.add('open');};
@@ -2805,12 +3093,14 @@ window.addEventListener('keydown', e=>{
 
   async function restoreSession(){
     const token=storedToken();if(!token){showLogin();return;}sessionToken=token;setSyncStatus('syncing','Memulihkan sesi…');
-    try{const row=firstRow(await rpc('kk_session_me',{p_session_token:token}));applyAccount(row,token);await loadOnlineData();}
+    try{const row=firstRow(await rpc('kk_session_me',{p_session_token:token}));applyAccount(row,token);await loadOnlineSchedule();await loadOnlineData();}
     catch(err){saveToken('');showLogin('Sesi sebelumnya berakhir. Silakan masuk kembali.');}
   }
   setInterval(()=>{if(currentAccount&&!document.hidden)loadOnlineData(true);},8000);
-  document.addEventListener('visibilitychange',()=>{if(currentAccount&&!document.hidden)loadOnlineData(true);});
-  window.addEventListener('online',()=>{if(currentAccount)loadOnlineData();});window.addEventListener('offline',()=>setSyncStatus('offline','Tidak ada internet'));
+  setInterval(()=>{if(currentAccount&&!document.hidden)loadOnlineSchedule(true);},30000);
+  document.addEventListener('visibilitychange',()=>{if(currentAccount&&!document.hidden){loadOnlineSchedule(true);loadOnlineData(true);}});
+  window.addEventListener('online',()=>{if(currentAccount){loadOnlineSchedule();loadOnlineData();}});window.addEventListener('offline',()=>setSyncStatus('offline','Tidak ada internet'));
+  initializeScheduleUploader();
   setMode('student');restoreSession();
 })();
 
