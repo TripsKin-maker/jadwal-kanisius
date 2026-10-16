@@ -2642,6 +2642,16 @@ window.addEventListener('keydown', e=>{
     if(error)throw error;
     return data;
   }
+  async function rpcPaged(name,args){
+    const all=[];const pageSize=1000;
+    for(let from=0;from<5000;from+=pageSize){
+      const {data,error}=await sb.rpc(name,args).range(from,from+pageSize-1);
+      if(error)throw error;
+      const rows=Array.isArray(data)?data:[];all.push(...rows);
+      if(rows.length<pageSize)break;
+    }
+    return all;
+  }
   function firstRow(data){return Array.isArray(data)?data[0]:data;}
   function classParts(cls){
     const m=String(cls||'').match(/^(X|XI|XII)-(\d+)$/);
@@ -2761,7 +2771,7 @@ window.addEventListener('keydown', e=>{
   async function loadOnlineSchedule(silent=false){
     if(!currentAccount||!sessionToken)return;
     try{
-      const rows=await rpc('kk_list_schedule',{p_session_token:sessionToken});
+      const rows=await rpcPaged('kk_list_schedule',{p_session_token:sessionToken});
       if(Array.isArray(rows)&&rows.length){
         applyPublishedSchedule(rows);
         const first=rows[0];
@@ -2896,7 +2906,7 @@ window.addEventListener('keydown', e=>{
         });
         // Vertically merged Simulasi TKA cells have text only on the first row.
         if(period>1){
-          ALL_CLASSES.forEach(cls=>{const list=scheduleDraft[cls][day],prev=list[period-2],cur=list[period-1];if((!cur.subject||cur.subject==='—')&&prev?.subject==='SIMULASI TKA'){cur.subject='SIMULASI TKA';changed++;classes.add(cls);}});
+          ALL_CLASSES.forEach((cls,idx)=>{const list=scheduleDraft[cls][day],prev=list[period-2],cur=list[period-1];if(cellWords[idx].length===0&&prev?.subject==='SIMULASI TKA'){cur.subject='SIMULASI TKA';changed++;classes.add(cls);}});
         }
       });
     });
